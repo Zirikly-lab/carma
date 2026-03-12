@@ -1696,7 +1696,7 @@ async def collect_tweets(
 # ============================================================
 
 CONDITION = "suicidal"
-COOKIES_FILE = "cookies_21.json"
+COOKIES_FILE = "/home/oem/code/carma/cookies_5.json"
 
 async def run():
     """Run collection for suicidal only."""

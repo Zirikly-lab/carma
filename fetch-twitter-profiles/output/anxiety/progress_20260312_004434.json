@@ -1,0 +1,17 @@
+{
+  "completed_users": [
+    "loiymagdy92",
+    "a1zz2m",
+    "chafi_amina"
+  ],
+  "stats": {
+    "total_users": 2123,
+    "collected": 3,
+    "failed": 0,
+    "not_found": 0,
+    "protected": 0,
+    "total_tweets": 0,
+    "gdrive_uploads": 0
+  },
+  "timestamp": "2026-03-12T00:44:51.078934"
+}

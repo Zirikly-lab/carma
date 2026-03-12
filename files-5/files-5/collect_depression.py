@@ -1696,7 +1696,7 @@ async def collect_tweets(
 # ============================================================
 
 CONDITION = "depression"
-COOKIES_FILE = "cookies_4.json"
+COOKIES_FILE = "/home/oem/code/carma/cookies_2.json"
 
 async def run():
     """Run collection for depression only."""
