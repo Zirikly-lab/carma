@@ -1,3 +1,4 @@
 *-splits/
 *.csv
 .bin
+.venv/
