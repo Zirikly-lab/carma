@@ -1,0 +1,3 @@
+Node: gh200-08
+GPUs: NVIDIA GH200 480GB, 97871 MiB
+Fine-tuning model: camelbert

@@ -1,0 +1,29 @@
+#!/bin/bash
+#SBATCH --job-name=carma-finetune
+#SBATCH --partition=superChip
+#SBATCH --gres=gpu:gh200:1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=128G
+#SBATCH --time=12:00:00
+#SBATCH --output=logs/finetune_%j.out
+#SBATCH --error=logs/finetune_%j.err
+
+set -e
+
+cd /SEAS/home/g21775526/code/carma
+export PYTHONNOUSERSITE=1
+PYTHON=/SEAS/home/g21775526/miniforge3/envs/carma-gh200/bin/python
+
+mkdir -p logs results
+
+echo "Node: $(hostname)"
+echo "GPUs: $(nvidia-smi --query-gpu=name,memory.total --format=csv,noheader)"
+
+# MODEL is passed as --export MODEL=arabert or camelbert
+MODEL=${MODEL:-arabert}
+echo "Fine-tuning model: $MODEL"
+
+$PYTHON experiments/finetune.py \
+    --model "$MODEL" \
+    --condition all \
+    --output "results/finetune_${MODEL}.csv"

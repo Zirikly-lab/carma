@@ -1,0 +1,8 @@
+Node: cpu072
+CPUs: 16
+Loading preprocessed posts …
+Loading majority-vote metadata …
+  8619 users, 1033091 posts after cleaning
+
+depression: 325559 pos users, train=393748 posts, test=39873 posts
+  NB: F1=0.869  Acc=0.768  P=0.771  R=0.995

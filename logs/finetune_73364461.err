@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/gpfs/automountdir/gpfs/homes/SEAS/home/g21775526/code/carma/experiments/finetune.py", line 18, in <module>
+    import torch
+  File "/SEAS/home/g21775526/miniforge3/lib/python3.13/site-packages/torch/__init__.py", line 427, in <module>
+    from torch._C import *  # noqa: F403
+    ^^^^^^^^^^^^^^^^^^^^^^
+ImportError: libnvshmem_host.so.3: cannot open shared object file: No such file or directory

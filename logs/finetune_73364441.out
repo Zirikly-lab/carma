@@ -1,0 +1,3 @@
+Node: viz002
+GPUs: NVIDIA L40S, 46068 MiB
+Fine-tuning model: camelbert

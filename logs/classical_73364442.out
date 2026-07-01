@@ -1,0 +1,101 @@
+Node: cpu017
+CPUs: 16
+Loading preprocessed posts …
+Loading majority-vote metadata …
+  8619 users, 1033091 posts after cleaning
+
+depression: 325559 pos users, train=393748 posts, test=39873 posts
+  NB: F1=0.869  Acc=0.768  P=0.771  R=0.995
+  LR: F1=0.858  Acc=0.754  P=0.774  R=0.963
+  SVM: F1=0.859  Acc=0.756  P=0.774  R=0.967
+  XGB: F1=0.869  Acc=0.768  P=0.771  R=0.995
+
+anxiety: 118661 pos users, train=143020 posts, test=13904 posts
+  NB: F1=0.870  Acc=0.772  P=0.787  R=0.973
+  LR: F1=0.852  Acc=0.747  P=0.789  R=0.926
+  SVM: F1=0.840  Acc=0.731  P=0.790  R=0.898
+  XGB: F1=0.874  Acc=0.777  P=0.787  R=0.984
+
+adhd: 111843 pos users, train=130497 posts, test=12640 posts
+  NB: F1=0.838  Acc=0.722  P=0.735  R=0.974
+  LR: F1=0.837  Acc=0.724  P=0.742  R=0.960
+  SVM: F1=0.832  Acc=0.720  P=0.748  R=0.938
+  XGB: F1=0.846  Acc=0.733  P=0.738  R=0.989
+
+ocd: 50560 pos users, train=61152 posts, test=6081 posts
+  NB: F1=0.811  Acc=0.683  P=0.691  R=0.983
+  LR: F1=0.791  Acc=0.662  P=0.691  R=0.923
+  SVM: F1=0.758  Acc=0.630  P=0.693  R=0.837
+  XGB: F1=0.807  Acc=0.678  P=0.689  R=0.974
+
+sleep_disorder: 68250 pos users, train=76353 posts, test=11421 posts
+  NB: F1=0.859  Acc=0.755  P=0.758  R=0.992
+  LR: F1=0.850  Acc=0.743  P=0.759  R=0.967
+  SVM: F1=0.831  Acc=0.719  P=0.761  R=0.914
+  XGB: F1=0.859  Acc=0.753  P=0.756  R=0.993
+
+autism: 33342 pos users, train=39312 posts, test=6119 posts
+  NB: F1=0.854  Acc=0.748  P=0.757  R=0.981
+  LR: F1=0.825  Acc=0.711  P=0.759  R=0.904
+  SVM: F1=0.773  Acc=0.653  P=0.763  R=0.783
+  XGB: F1=0.847  Acc=0.737  P=0.754  R=0.967
+
+panic: 26691 pos users, train=33330 posts, test=4062 posts
+  NB: F1=0.852  Acc=0.783  P=0.785  R=0.933
+  LR: F1=0.825  Acc=0.738  P=0.751  R=0.914
+  SVM: F1=0.794  Acc=0.711  P=0.762  R=0.830
+  XGB: F1=0.818  Acc=0.717  P=0.721  R=0.946
+
+bipolar: 16835 pos users, train=21179 posts, test=1785 posts
+  NB: F1=0.913  Acc=0.840  P=0.857  R=0.977
+  LR: F1=0.883  Acc=0.793  P=0.854  R=0.914
+  SVM: F1=0.789  Acc=0.664  P=0.855  R=0.732
+  XGB: F1=0.900  Acc=0.819  P=0.852  R=0.954
+
+ptsd: 24497 pos users, train=28591 posts, test=2180 posts
+  NB: F1=0.889  Acc=0.801  P=0.801  R=0.999
+  LR: F1=0.886  Acc=0.796  P=0.803  R=0.989
+  SVM: F1=0.836  Acc=0.726  P=0.802  R=0.873
+  XGB: F1=0.888  Acc=0.798  P=0.801  R=0.995
+
+bpd: 11688 pos users, train=15312 posts, test=2171 posts
+  NB: F1=0.681  Acc=0.550  P=0.534  R=0.941
+  LR: F1=0.674  Acc=0.573  P=0.552  R=0.864
+  SVM: F1=0.636  Acc=0.574  P=0.565  R=0.730
+  XGB: F1=0.685  Acc=0.582  P=0.557  R=0.888
+
+suicidal: 13753 pos users, train=15831 posts, test=2403 posts
+  NB: F1=0.921  Acc=0.854  P=0.861  R=0.991
+  LR: F1=0.884  Acc=0.793  P=0.855  R=0.915
+  SVM: F1=0.804  Acc=0.681  P=0.855  R=0.758
+  XGB: F1=0.887  Acc=0.799  P=0.857  R=0.920
+
+schizophrenia: 12113 pos users, train=15218 posts, test=942 posts
+  NB: F1=0.611  Acc=0.441  P=0.441  R=0.990
+  LR: F1=0.604  Acc=0.437  P=0.439  R=0.969
+  SVM: F1=0.581  Acc=0.453  P=0.440  R=0.856
+  XGB: F1=0.608  Acc=0.445  P=0.442  R=0.971
+
+eating_disorder: 6922 pos users, train=7957 posts, test=1401 posts
+  NB: F1=0.913  Acc=0.839  P=0.842  R=0.996
+  LR: F1=0.902  Acc=0.822  P=0.841  R=0.972
+  SVM: F1=0.854  Acc=0.747  P=0.834  R=0.875
+  XGB: F1=0.891  Acc=0.803  P=0.836  R=0.953
+
+Results saved to results/classical.csv
+
+Best F1 per condition:
+      condition model     f1
+           adhd   XGB 0.8455
+        anxiety   XGB 0.8744
+         autism    NB 0.8543
+        bipolar    NB 0.9128
+            bpd   XGB 0.6847
+     depression   XGB 0.8688
+eating_disorder    NB 0.9126
+            ocd    NB 0.8113
+          panic    NB 0.8524
+           ptsd    NB 0.8893
+  schizophrenia    NB 0.6105
+ sleep_disorder    NB 0.8592
+       suicidal    NB 0.9212

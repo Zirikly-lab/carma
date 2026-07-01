@@ -1,0 +1,46 @@
+Node: gpu012
+GPUs: Tesla V100-SXM2-16GB, 16384 MiB
+Fixing torch CUDA version...
+torch: 2.11.0+cu126 | CUDA available: True
+Loading data/manual-annotation/reddit-sample-fady.csv …
+260 rows to annotate  (0 already done, 260 total)
+Initializing transformers backend (inceptionai/Jais-2-8B-Chat) …
+Loading model in 4-bit (BnB) …
+  checkpoint saved (10/260 annotated)
+  checkpoint saved (20/260 annotated)
+  checkpoint saved (30/260 annotated)
+  checkpoint saved (40/260 annotated)
+  checkpoint saved (50/260 annotated)
+  checkpoint saved (60/260 annotated)
+  checkpoint saved (70/260 annotated)
+  checkpoint saved (80/260 annotated)
+  checkpoint saved (90/260 annotated)
+  checkpoint saved (100/260 annotated)
+  checkpoint saved (110/260 annotated)
+  checkpoint saved (120/260 annotated)
+  checkpoint saved (130/260 annotated)
+  checkpoint saved (140/260 annotated)
+  checkpoint saved (150/260 annotated)
+  checkpoint saved (160/260 annotated)
+  checkpoint saved (170/260 annotated)
+  checkpoint saved (180/260 annotated)
+  checkpoint saved (190/260 annotated)
+  checkpoint saved (200/260 annotated)
+  checkpoint saved (210/260 annotated)
+  checkpoint saved (220/260 annotated)
+  checkpoint saved (230/260 annotated)
+  checkpoint saved (240/260 annotated)
+  checkpoint saved (250/260 annotated)
+  checkpoint saved (260/260 annotated)
+
+Saved to data/manual-annotation/reddit-sample-jais.csv
+
+Label distribution:
+annotation
+TP            209
+FP             37
+NA             12
+PARSE_FAIL      2
+Name: count, dtype: int64
+
+Warning: 2 PARSE_FAIL rows — re-run to retry.

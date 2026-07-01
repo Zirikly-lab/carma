@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/gpfs/automountdir/gpfs/homes/SEAS/home/g21775526/code/carma/experiments/finetune.py", line 16, in <module>
+    import pandas as pd
+  File "/gpfs/automountdir/gpfs/homes/SEAS/home/g21775526/code/venv/lib/python3.13/site-packages/pandas/__init__.py", line 44, in <module>
+    import pandas.core.config_init  # pyright: ignore[reportUnusedImport] # noqa: F401
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/gpfs/automountdir/gpfs/homes/SEAS/home/g21775526/code/venv/lib/python3.13/site-packages/pandas/core/config_init.py", line 31, in <module>
+    from pandas.errors import Pandas4Warning
+  File "/gpfs/automountdir/gpfs/homes/SEAS/home/g21775526/code/venv/lib/python3.13/site-packages/pandas/errors/__init__.py", line 8, in <module>
+    import ctypes
+  File "/c1/apps/python3/3.13.3/lib/python3.13/ctypes/__init__.py", line 8, in <module>
+    from _ctypes import Union, Structure, Array
+ImportError: libffi.so.6: cannot open shared object file: No such file or directory

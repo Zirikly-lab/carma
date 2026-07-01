@@ -213,6 +213,8 @@ def run_transformers(todo_indices, df, model_name, batch_size, load_in_4bit=Fals
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default=MODEL_NAME)
+    parser.add_argument("--input",  default=INPUT_PATH,  help="Input CSV (base data to annotate)")
+    parser.add_argument("--output", default=None,        help="Output CSV (defaults to --input)")
     parser.add_argument("--backend", choices=["vllm", "transformers"], default="vllm")
     parser.add_argument("--tensor-parallel-size", type=int, default=TENSOR_PARALLEL)
     parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
@@ -223,10 +225,12 @@ def main() -> None:
     model_name   = args.model
     tp_size      = args.tensor_parallel_size
     batch_size   = args.batch_size
+    input_path   = args.input
+    output_path  = args.output if args.output else input_path
 
-    print(f"Loading {INPUT_PATH} …")
+    print(f"Loading {input_path} …")
     # keep_default_na=False prevents pandas from parsing "NA" labels as NaN
-    df = pd.read_csv(INPUT_PATH, keep_default_na=False)
+    df = pd.read_csv(input_path, keep_default_na=False)
 
     if ANNOTATION_COL not in df.columns:
         df[ANNOTATION_COL] = pd.NA
@@ -272,13 +276,13 @@ def main() -> None:
 
         batch_num = batch_start // batch_size + 1
         if batch_num % CHECKPOINT_EVERY == 0:
-            df.to_csv(OUTPUT_PATH, index=False)
+            df.to_csv(output_path, index=False)
             done_so_far = batch_start + len(batch_idx)
             print(f"  checkpoint saved ({done_so_far}/{len(todo_indices)} annotated)")
 
-    df.to_csv(OUTPUT_PATH, index=False)
+    df.to_csv(output_path, index=False)
 
-    print(f"\nSaved to {OUTPUT_PATH}")
+    print(f"\nSaved to {output_path}")
     print("\nLabel distribution:")
     print(df[ANNOTATION_COL].value_counts())
     if parse_fail_count:

@@ -299,13 +299,77 @@ We further construct a control dataset in a similar manner by scraping entire pu
 \subsection{Human Annotation}
 \label{subsec:human_annotation}
 
-To assess the false positive rate and retrieval quality of the pipeline,
-two native Arabic-speaking annotators independently labeled a stratified
-sample of 100 posts from CARMA, classifying each post as \texttt{True Positive} (a genuine
-self-disclosure of a mental health diagnosis) or \texttt{False Positive}
-(a post that mentioned a mental health condition without constituting a
-genuine diagnosis, such as through metaphor or sarcasm). The annotators agreed on 96 of 100 posts
-(96.0\%), yielding Cohen's $\kappa = 0.756$, indicating substantial agreement.
+To assess the precision of the pipeline and validate the annotation
+scheme, two native Arabic-speaking annotators independently labeled a
+stratified sample of 260 posts from CARMA under a three-way scheme:
+\texttt{TP} (a genuine first-person self-disclosure of a mental health
+diagnosis), \texttt{FP} (a clear mismatch — sarcasm, third-person
+reference, figurative use, or negation), or \texttt{NA} (ambiguous;
+cannot confidently assign TP or FP). We additionally ran two LLMs
+as independent checks on the same 260 posts using the same scheme:
+Qwen2-7B-Instruct \cite{qwen2025qwen25technicalreport} and
+Jais-2-8B-Chat \cite{jais2_2025}, both in 4-bit quantisation.
+Table~\ref{tab:iaa_manual} summarises all pairwise agreement;
+Table~\ref{tab:iaa_manual_perlabel} breaks it down by label.
+
+The two human annotators achieve moderate agreement ($\kappa = 0.480$,
+75.3\%). All four human-versus-LLM pairs fall in the slight range
+($\kappa = 0.155$--$0.198$), driven by both LLMs over-predicting TP
+and rarely using NA. Jais shows a modest advantage over Qwen on FP
+(F1 35.1 vs.\ 25.4 against Fady; 35.0 vs.\ 23.5 against Nour),
+benefiting from its Arabic-specialised pre-training; NA agreement
+remains near zero for both models. Notably, the two LLMs agree with
+each other ($\kappa = 0.190$, 75.6\%) at roughly the same level as
+each agrees with a human, indicating that their errors are largely
+uncorrelated rather than reflecting a shared systematic bias.
+All four annotators agree on 51.0\% of posts, almost entirely on TP.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{Pair} & $n$ & \textbf{\% Agree} & $\kappa$ \\
+\midrule
+Fady vs.\ Nour (human--human) & 251 & 75.3 & \textbf{0.480} \\
+\midrule
+Fady vs.\ Qwen                & 259 & 73.0 & 0.198 \\
+Fady vs.\ Jais                & 258 & 71.3 & 0.196 \\
+Nour vs.\ Qwen                & 250 & 62.8 & 0.155 \\
+Nour vs.\ Jais                & 249 & 63.5 & 0.197 \\
+\midrule
+Qwen vs.\ Jais (LLM--LLM)     & 258 & 75.6 & 0.190 \\
+\midrule
+All four agree                 & 249 & 51.0 & ---   \\
+\bottomrule
+\end{tabular}
+\caption{Pairwise agreement on the 260-post three-label annotation
+(TP / FP / NA). Qwen = Qwen2-7B-Instruct; Jais = Jais-2-8B-Chat
+(both 4-bit). $\kappa$ follows \citet{landis1977measurement};
+rows with invalid labels excluded per pair (Nour: 9 NONE;
+Qwen: 1 PARSE\_FAIL; Jais: 2 PARSE\_FAIL).}
+\label{tab:iaa_manual}
+\end{table}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Label}
+  & \textbf{F/N} & \textbf{F/Q} & \textbf{F/J}
+  & \textbf{N/Q} & \textbf{N/J} & \textbf{Q/J} \\
+\midrule
+TP & 85.7 & 84.6 & 82.8 & 78.8 & 78.6 & \textbf{85.9} \\
+FP & \textbf{63.3} & 25.4 & 35.1 & 23.5 & 35.0 & 31.7 \\
+NA & \textbf{38.4} &  25.6 & 16.7 & 12.5 & 10.2 & 14.8 \\
+\bottomrule
+\end{tabular}
+\caption{Per-label F1 (\%) for each annotator pair (F=Fady, N=Nour,
+Q=Qwen, J=Jais). F1 is the harmonic mean of precision and recall
+computed symmetrically between the two raters.}
+\label{tab:iaa_manual_perlabel}
+\end{table}
 
 \subsection{LLM-as-Judge Framework}
 \label{subsec:llm_judge}
@@ -352,7 +416,9 @@ self-disclosures from figurative or sarcastic mentions in social media text.
 
 Table~\ref{tab:iaa_human} (Appendix) compares each LLM judge against the two human
 annotators. The human-to-human agreement (first row) serves as a
-reference point: substantial on CARMA ($\kappa = 0.756$). The LLM Majority vote generally achieves higher or comparable
+reference point: substantial on CARMA ($\kappa = 0.756$) under the
+binary scheme; moderate ($\kappa = 0.480$) under the expanded
+three-label scheme (§\ref{subsec:human_annotation}). The LLM Majority vote generally achieves higher or comparable
 $\kappa$ with both annotators relative to any individual model, reaching
 up to $\kappa = 0.590$ (Ann-2). This pattern validates the ensemble approach: aggregating
 three judges mitigates the idiosyncratic errors of any single model and

@@ -1,0 +1,16 @@
+warning  libmamba 'repo.anaconda.com', a commercial channel hosted by Anaconda.com, is used.
+    
+warning  libmamba Please make sure you understand Anaconda Terms of Services.
+    
+warning  libmamba See: https://legal.anaconda.com/policies/en/
+ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+datasets 4.3.0 requires fsspec[http]<=2025.9.0,>=2023.1.0, but you have fsspec 2026.4.0 which is incompatible.
+
+[notice] A new release of pip is available: 25.3 -> 26.1.2
+[notice] To update, run: /SEAS/home/g21775526/miniforge3/envs/carma-gh200/bin/python -m pip install --upgrade pip
+
+[notice] A new release of pip is available: 25.3 -> 26.1.2
+[notice] To update, run: /SEAS/home/g21775526/miniforge3/envs/carma-gh200/bin/python -m pip install --upgrade pip
+Traceback (most recent call last):
+  File "<string>", line 2, in <module>
+ModuleNotFoundError: No module named 'transformers'

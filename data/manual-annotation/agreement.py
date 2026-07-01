@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Inter-annotator agreement between Fady, Nour, and Qwen (LLM).
+Inter-annotator agreement between Fady, Nour, Qwen (LLM), and Jais (LLM).
 
 Outputs:
   - Pairwise % agreement and Cohen's kappa
   - Per-label precision / recall / F1 for each pair
   - Confusion matrices
-  - All-three agreement breakdown
+  - All-four agreement breakdown
 """
 
 import pandas as pd
@@ -15,6 +15,7 @@ from sklearn.metrics import cohen_kappa_score, confusion_matrix
 FADY_PATH = "data/manual-annotation/reddit-sample-fady.csv"
 NOUR_PATH  = "data/manual-annotation/reddit-sample-nour.csv"
 QWEN_PATH  = "data/manual-annotation/reddit-sample-qwen.csv"
+JAIS_PATH  = "data/manual-annotation/reddit-sample-jais.csv"
 
 LABELS = ["TP", "FP", "NA"]
 VALID  = set(LABELS)
@@ -24,10 +25,12 @@ def load_data():
     fady = pd.read_csv(FADY_PATH, keep_default_na=False)
     nour = pd.read_csv(NOUR_PATH,  keep_default_na=False)
     qwen = pd.read_csv(QWEN_PATH,  keep_default_na=False)
+    jais = pd.read_csv(JAIS_PATH,  keep_default_na=False)
 
     df = fady[["id", "diagnosis", "Label"]].rename(columns={"Label": "fady"})
     df = df.merge(nour[["id", "nour_label"]].rename(columns={"nour_label": "nour"}), on="id")
     df = df.merge(qwen[["id", "annotation"]].rename(columns={"annotation": "qwen"}), on="id")
+    df = df.merge(jais[["id", "annotation"]].rename(columns={"annotation": "jais"}), on="id")
     return df
 
 
@@ -75,6 +78,7 @@ def main():
         "fady": df["fady"].isin(VALID),
         "nour": df["nour"].isin(VALID),
         "qwen": df["qwen"].isin(VALID),
+        "jais": df["jais"].isin(VALID),
     }
     for name, m in mask.items():
         inv = df.loc[~m, name].value_counts().to_dict()
@@ -83,7 +87,10 @@ def main():
     pairs = [
         ("Fady", "Nour", "fady", "nour"),
         ("Fady", "Qwen", "fady", "qwen"),
+        ("Fady", "Jais", "fady", "jais"),
         ("Nour", "Qwen", "nour", "qwen"),
+        ("Nour", "Jais", "nour", "jais"),
+        ("Qwen", "Jais", "qwen", "jais"),
     ]
 
     # ------------------------------------------------------------------ #
@@ -121,15 +128,19 @@ def main():
         print(confusion(a, b, a_name, b_name).to_string())
 
     # ------------------------------------------------------------------ #
-    mask_all = mask["fady"] & mask["nour"] & mask["qwen"]
-    df3 = df[mask_all]
-    all_agree = (df3["fady"] == df3["nour"]) & (df3["nour"] == df3["qwen"])
+    mask_all = mask["fady"] & mask["nour"] & mask["qwen"] & mask["jais"]
+    df4 = df[mask_all]
+    all_agree = (
+        (df4["fady"] == df4["nour"]) &
+        (df4["nour"] == df4["qwen"]) &
+        (df4["qwen"] == df4["jais"])
+    )
     print(f"\n{'='*60}")
-    print(f"ALL THREE AGREE (n={len(df3)}): {all_agree.sum()} rows = {all_agree.mean()*100:.1f}%")
-    print("\nLabel breakdown where all three agree:")
-    print(df3.loc[all_agree, "fady"].value_counts())
-    print("\nTop disagreement patterns (fady / nour / qwen):")
-    print(df3.loc[~all_agree, ["fady", "nour", "qwen"]].value_counts().head(15))
+    print(f"ALL FOUR AGREE (n={len(df4)}): {all_agree.sum()} rows = {all_agree.mean()*100:.1f}%")
+    print("\nLabel breakdown where all four agree:")
+    print(df4.loc[all_agree, "fady"].value_counts())
+    print("\nTop disagreement patterns (fady / nour / qwen / jais):")
+    print(df4.loc[~all_agree, ["fady", "nour", "qwen", "jais"]].value_counts().head(15))
 
 
 if __name__ == "__main__":

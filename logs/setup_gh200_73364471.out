@@ -1,0 +1,6 @@
+Node: gh200-08 | Arch: aarch64
+=== Checking for nvshmem ===
+=== Available module paths ===
+   cuda/12.8                        openmpi/gcc/4.1.8        (D)
+   cuda/13                   (D)    pixi/0.55.0
+=== Creating new conda env ===
