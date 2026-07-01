@@ -1,0 +1,2 @@
+ERROR: Could not find a version that satisfies the requirement torchaudio==2.12.1+cu126 (from versions: 2.6.0+cu126, 2.7.0+cu126, 2.7.1+cu126, 2.8.0+cu126, 2.9.0+cu126, 2.9.1+cu126, 2.10.0+cu126, 2.11.0+cu126)
+ERROR: No matching distribution found for torchaudio==2.12.1+cu126

@@ -1,0 +1,3 @@
+torch: 2.11.0+cu126 | CUDA: True
+transformers imports OK
+tokenizer loaded OK

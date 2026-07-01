@@ -1,0 +1,1196 @@
+% This file compiles with both LuaLaTeX and XeLaTeX
+\documentclass[11pt]{article}
+
+% Change "review" to "final" to generate the final (sometimes called camera-ready) version.
+% Change to "preprint" to generate a non-anonymous version with page numbers.
+\usepackage[review]{acl}
+
+
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{tcolorbox}
+\usepackage{listings}
+\tcbuselibrary{breakable,skins}
+\usepackage{xcolor}
+% This is not strictly necessary, and may be commented out,
+% but it will improve the layout of the manuscript,
+% and will typically save some space.
+ \usepackage{microtype}
+
+% If the title and author information does not fit in the area allocated, uncomment the following
+%
+%\setlength\titlebox{<dim>}
+%
+% and set <dim> to something 5cm or larger.
+
+% These font selection commands work with
+% LuaLaTeX and XeLaTeX, but not pdfLaTeX.
+\usepackage[english,bidi=default]{babel} % English as the main language.
+\babelfont{rm}{TeXGyreTermesX} % similar to Times
+%%% include whatever languages you need below this line
+\babelprovide[import]{hindi}
+\babelfont[*devanagari]{rm}{Lohit Devanagari}
+\babelprovide[import]{arabic}
+\babelfont[*arabic]{rm}{Noto Sans Arabic}
+
+
+%\usepackage{polyglossia}
+%\setdefaultlanguage{english}
+%\setotherlanguages{arabic,russian,thai,hindi,kannada}
+
+%%%%%
+
+%\title{Twitter: Large-Scale Arabic Mental Health Corpora from Social Media}
+
+
+\title{CARMA: Large-Scale Arabic Social Media Corpora for Mental Health Analysis}
+
+% Author information can be set in various styles:
+% For several authors from the same institution:
+% \author{Author 1 \and ... \and Author n \\
+%         Address line \\ ... \\ Address line}
+% if the names do not fit well on one line use
+%         Author 1 \\ {\bf Author 2} \\ ... \\ {\bf Author n} \\
+% For authors from different institutions:
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \And  ... \And
+%         Author n \\ Address line \\ ... \\ Address line}
+% To start a seperate ``row'' of authors use \AND, as in
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \AND
+%         Author 2 \\ Address line \\ ... \\ Address line \And
+%         Author 3 \\ Address line \\ ... \\ Address line}
+
+\author{First Author \\
+  Affiliation / Address line 1 \\
+  Affiliation / Address line 2 \\
+  Affiliation / Address line 3 \\
+  \texttt{email@domain} \\\And
+  Second Author \\
+  Affiliation / Address line 1 \\
+  Affiliation / Address line 2 \\
+  Affiliation / Address line 3 \\
+  \texttt{email@domain} \\}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+%CARMA: Corpus of Arabic Mental Health Self-Reports, an Arabic Self-Reported Mental Health Diagnoses dataset
+Mental health has emerged as a critical global issue, yet Arabic NLP resources for mental health research remain scarce. We introduce \textbf{CARMA}, two large-scale corpora from social media: CARMA-X, collected from X (9,336 unique users, \textbf{103K} posts), and CARMA-R, collected from Reddit (3,080 users, \textbf{\textasciitilde1M} posts), covering users who have self-reported diagnoses of mental health conditions. The high quality corpora target 21 conditions spanning ten diagnostic categories, of which 18 yielded sufficient confirmed users for analysis. We collect data using a high-precision, LLM-powered extraction pipeline validated through manual human annotation that combines self-disclosure phrases with condition-specific keywords across four Arabic dialect groups (Gulf, Egyptian, Levantine, and Modern Standard Arabic) to identify posts containing genuine diagnostic self-reports. We employ an author-level approach that retrieves complete posting histories to enable longitudinal analysis. We benchmark the performance of current detection models and leverage Large Language Models to establish baselines for Arabic mental health classification. Our contribution is also methodological: we enhance automatic self-reported diagnosis by including human and LLM annotations as independent layers to improve quality, ensure data integrity, and reduce false positives.\end{abstract}
+
+
+
+\section{Introduction}
+\label{sec:introduction}
+Mental health has emerged as a critical global challenge, with over one billion
+people worldwide estimated to live with a mental disorder
+\cite{who2025mental}. In recent years, social media platforms have become a valuable source of
+large-scale, naturalistic text for studying mental health-related language.
+Computational approaches have demonstrated that linguistic and behavioral signals
+in user-generated content can serve as proxies for detecting mental health
+conditions \cite{de2013predicting, chancellor2020methods}. The CLPsych workshop
+series further institutionalized this line of research by establishing datasets, shared tasks and standardized evaluation frameworks \cite{coppersmith2015clpsych}.
+A central methodological development is the \textit{self-reported diagnosis}
+paradigm, which identifies users who publicly disclose having received a clinical
+diagnosis. First introduced by \citet{coppersmith2014quantifying} on Twitter and
+later extended to Reddit by \citet{cohan-etal-2018-smhd}, this approach has enabled the
+construction of large-scale datasets without requiring manual clinical annotation.
+
+Despite this progress, the overwhelming majority of existing resources target English-language data \cite{harrigian2021state}. Arabic remains substantially underrepresented in computational mental health research, despite being spoken by over 400 million people across diverse linguistic and cultural contexts. Arabic poses particular challenges for natural language processing, including rich morphology and extensive dialectal variation across regional varieties such as Gulf, Egyptian, and Levantine Arabic \cite{darwish2021panorama,habash2010introduction}. Existing Arabic mental health datasets are limited in scale, typically target only one or two conditions (most commonly depression or suicidal ideation), and rarely address dialectal variation systematically (see Table~\ref{tab:arabic_datasets}).
+
+In this paper, we address these gaps by introducing two large-scale and carefully-curated Arabic mental
+health corpora: \textbf{CARMA-X}, collected from X (formerly Twitter), and
+\textbf{CARMA-R}, collected from Reddit. Both corpora follow the self-reported
+diagnosis paradigm: we develop a dialect-aware, pattern-based extraction pipeline
+that identifies Arabic diagnosis disclosures across four major dialect groups (Egyptian, MSA, KSA, Levantine).
+Candidate disclosures are then validated through an \textit{LLM-as-Judge}
+annotation framework \cite{zheng2023judging} employing three independent language
+models (Qwen3, Jais2, GPT4), mitigating the risk of individual model bias and improving annotation
+reliability in this low-resource setting \cite{fu-liu-2025-reliable}. We adopt
+an author-level collection strategy, retrieving the complete posting histories of
+identified users to support longitudinal analysis of linguistic patterns beyond
+the initial disclosure posts.
+
+Together, the two corpora target 21 conditions spanning ten diagnostic
+categories (Table~\ref{tab:arabic_datasets}).
+
+%Three conditions, Avoidant Personality Disorder, Narcissistic Personality Disorder, and Schizotypal Personality Disorder, yielded insufficient confirmed users and are excluded from downstream analysis, leaving 18 conditions for evaluation.
+
+Our contributions are as follows:
+\begin{enumerate}
+    \item We introduce \textbf{CARMA-X} and \textbf{CARMA-R}, two large-scale
+    Arabic mental health corpora collected from X and Reddit, targeting 21
+    conditions across ten diagnostic categories. 
+    %of which 18 yield sufficient data for analysis.
+
+    \item We develop the first high precision, dialect aware, automatic extraction pipeline powered by LLMs to identify self disclosure in Arabic.
+
+    \item We validate the automatic annotation pipeline using two native Arabic-speaking
+    annotators and an LLM-as-Judge framework with three large language
+    models.
+
+    \item We provide a comprehensive analysis of corpus characteristics and
+    baseline model performance, offering insights into the challenges of mental
+    health detection in Arabic social media.
+    
+\end{enumerate}
+
+
+
+\section{Related Work}
+\label{sec:related_work}
+
+\subsection{Mental Health Detection from Social Media}
+\label{subsec:related_social_media}
+
+Research on detecting mental health conditions from social media has grown
+substantially over the past decade. Early work by \citet{de2013predicting}
+demonstrated that linguistic and behavioral signals on Twitter can be used to
+identify users experiencing depression. Since then, numerous studies have explored
+computational methods for identifying mental health conditions from social media
+language across multiple platforms and conditions.
+
+The CLPsych workshop series \cite{coppersmith2015clpsych} introduced standardized
+shared tasks and evaluation frameworks for detecting conditions such as depression
+and post-traumatic stress disorder, enabling systematic comparison of computational
+approaches and helping establish methodological foundations for the field.
+
+A key development in this area is the \textit{self-reported diagnosis} paradigm,
+which identifies users who publicly disclose receiving a clinical diagnosis through
+pattern matching. \citet{coppersmith2014quantifying} first introduced this approach
+by identifying Twitter users who disclosed mental health diagnoses via regular
+expression matching. \citet{cohan-etal-2018-smhd} later extended this methodology to
+Reddit, introducing the SMHD dataset, a large-scale corpus covering nine mental
+health conditions. The paradigm has since been applied to other languages,
+including German with the SMHD-GER dataset \cite{zanwar2023smhd}.
+\citet{harrigian2021state} provide a comprehensive analysis of existing social
+media datasets used in mental health research, highlighting methodological
+challenges in dataset construction and emphasizing that the majority of existing
+resources target English, leaving other languages substantially underrepresented.
+
+\subsection{Arabic NLP for Mental Health}
+\label{subsec:related_arabic}
+
+Compared to English, computational research on mental health in Arabic remains
+relatively limited. Arabic presents several challenges for natural language
+processing, including rich morphology, substantial dialectal variation across
+regional varieties such as Gulf, Egyptian, and Levantine Arabic, and limited
+availability of large annotated datasets \cite{darwish2021panoramic, alayba2025arabic}.
+Table~\ref{tab:arabic_datasets} summarizes existing Arabic datasets related to
+mental health and situates our corpora within this landscape.
+
+Several studies have constructed datasets from X to study specific mental health
+conditions. \citet{al2024classification} introduce a dataset for detecting
+obsessive-compulsive disorder symptoms in Arabic tweets. For suicidal ideation
+detection, \citet{abdulsalam2024detecting} create a dataset of approximately 5.7K
+tweets, while \citet{baghdadi2022optimized} provide a smaller dataset of around
+2K tweets.
+
+Depression detection has received the most attention in Arabic social media
+research. \citet{hassib2022aradepsu} introduce AraDepSu, a dataset of
+approximately 20K tweets annotated for depression and suicidal ideation.
+Earlier work by \citet{almouzini2019detecting} developed a dataset for identifying
+depressed users on Twitter. \citet{elramly2021cairodep} present CairoDep, a corpus
+of approximately 7K tweets manually labeled for depression detection.
+\citet{maghraby2022mood} introduce the Mood Change dataset, a Modern Standard
+Arabic collection organized around PHQ-9 depression screening categories to
+facilitate symptom-level analysis.
+
+Beyond social media, \citet{alhuzali2024mentalqa} introduce MentalQA, a dataset
+of 1,000 question-and-answer posts from the Altibbi medical platform annotated for
+question types and answer strategies. Unlike social media datasets, MentalQA
+focuses on question-answer classification rather than detecting mental health
+conditions from user-generated discourse.
+
+Despite these efforts, existing Arabic mental health datasets exhibit three
+notable limitations. First, most datasets focus on only one or two conditions,
+typically depression or suicidal ideation, leaving the broader spectrum of mental
+health conditions largely unaddressed. Second, annotations are typically performed
+at the post level, without modeling user-level context or longitudinal behavior.
+Third, dialectal variation across Arabic varieties is rarely addressed
+systematically during dataset construction. Our corpora are designed to address
+all three of these limitations.
+
+\subsection{LLM-as-Judge for NLP Annotation}
+\label{subsec:related_llm_judge}
+
+The \textit{LLM-as-Judge} paradigm proposes using large language models as
+automated evaluators for text generation and annotation tasks.
+\citet{zheng2023judging} show that strong language models can approximate human
+judgments in several evaluation settings by ranking model outputs according to
+task-specific criteria. As a result, LLM-based evaluation has increasingly been
+adopted in NLP workflows, including dataset filtering, label verification, and
+large-scale annotation pipelines.
+
+\citet{gilardi2023chatgpt} demonstrate that ChatGPT outperforms crowd workers on
+several annotation tasks, including relevance, stance, and frame detection,
+suggesting that LLM-based annotation can be competitive with human annotators
+on certain labeling tasks. In the mental health domain, large language models
+have been applied to classification and reasoning over online mental health
+discourse \cite{xu2024mental}.
+
+However, the reliability of LLM-based judging remains an active area of
+investigation. \citet{fu-liu-2025-reliable} show that agreement between LLM judges
+can vary substantially across languages, with particularly low consistency in
+low-resource settings. These findings directly motivate our use of three
+independent LLM judges rather than a single model, and our inclusion of
+validation steps to assess inter-model agreement before accepting a label.
+
+
+
+\begin{table*}
+\centering
+\small
+\begin{tabular}{cl l rll}
+\toprule
+& \textbf{Dataset} & \textbf{Condition} & \textbf{Size} & \textbf{Domain} & \textbf{Anno.} \\
+\midrule
+& MentalQA~\cite{alhuzali2024mentalqa} & N/A & 1,000 & Altibbi & Human \\
+& OCDTweets~\cite{al2024classification} & OCD symptoms & 5K & X & Human \\
+& Arabic Suicidal Tweets~\cite{abdulsalam2024detecting} & Suicidal ideation & 5.7K & X & Human \\
+& Suicide Tweets~\cite{baghdadi2022optimized} & Suicidal ideation & 2.0K & X & Human \\
+& AraDepSu~\cite{hassib2022aradepsu} & Depression, Suicidal ideation & 20K & X & Human \\
+& Detecting Depression~\cite{almouzini2019detecting} & Depression & 2.7K & X & Human \\
+& CairoDep~\cite{elramly2021cairodep} & Depression & 7K & X & Human \\
+& Mood Change~\cite{maghraby2022mood} & Depression & 49K & X & Auto. \\
+\midrule
+& & \textit{Schizophrenia Spectrum:}& & & \\
+& & Delusional Disorder, Schizophrenia & & & \\
+& & \textit{Mood:} Bipolar, Depression & & & \\
+& & \textit{Anxiety:} Anxiety, Panic Disorder & & & \\
+& & \textit{OCD \& Related:} OCD, & & & \\
+& & \textit Trichotillomania & & & \\
+
+& & \textit{Trauma:} PTSD & & & \\
+& \textbf{Ours} & \textit{Eating:} Eating Disorder & \textbf{103K} & \textbf{X} & \textbf{Auto.} \\
+&  & \textit{Neurodevelopmental:} ADHD, Autism & \textbf{1M} & \textbf{Reddit} & \textbf{Auto.} \\
+& & \textit{Dissociative:} DID & & & \\
+& & \textit{Sleep:} Sleep Disorder & & & \\
+& & \textit{Personality:} BPD, Narcissistic PD, & & & \\
+& & ~~Avoidant PD, Schizoid PD, & & & \\
+& & ~~Paranoid PD & & & \\
+& & \textit{Clinical Risk:} Suicidal Ideation & & & \\
+\bottomrule
+\end{tabular}
+\caption{Comparison of Arabic Mental Health Corpora. For our corpora, all 21 target conditions are listed; *some conditions are excluded from analysis due to insufficient confirmed users. The size here is in number of single documents posts/tweets}
+
+\label{tab:arabic_datasets}
+\end{table*}
+
+
+
+\section{Dataset Construction}
+\label{subsec:data_source}
+
+\subsection{Diagnosed Dataset}
+
+We collect data from two social media platforms. For X, we collect posts via the Twikit Python library\footnote{\url{https://twikit.readthedocs.io/en/latest/twikit.html}}. For Reddit, we use pre-downloaded JSONL archives from Arctic Shift\footnote{\url{https://github.com/ArthurHeitmann/arctic_shift}} (Pushshift format), containing posts and comments from Arabic-speaking subreddits. The two platforms capture complementary forms of mental health discourse: X provides shorter, real-time disclosures, while Reddit offers longer, more detailed self-reports. To the best of our knowledge, there are no dedicated Arabic-language mental health subreddits comparable to those in English (e.g., r/depression, r/SuicideWatch). Consequently, our Reddit dataset is derived entirely from general regional subreddits (e.g., r/saudiarabia, r/Egypt, r/jordan), from which we extract mental-health-relevant content.
+
+We use a curated list of condition keywords (e.g., \foreignlanguage{arabic}{اكتئاب حاد}, "Severe Depression") and diagnosis phrases (e.g., \foreignlanguage{arabic}{تم تشخيصي بـ}, "I was diagnosed with"), checking whether they co-occur within a 40-character window (measured at the Unicode character level). See Appendix~\ref{app:keywords} and Appendix~\ref{app:phrases} for a detailed pattern description. To enhance inclusivity and robustness, the phrase list incorporates variations across Arabic dialects, including Modern Standard Arabic, Egyptian, and Levantine, along with frequent spellings and misspellings to account for the diverse posting habits of social media users. Condition keywords name each target condition in text, covering formal clinical terms, colloquial Arabic labels, and English terms.
+
+\subsection{Preprocessing}
+
+We apply two filtering steps to the collected post histories. First, we remove all posts containing mental health-related content (self-disclosures, condition keywords, and medication mentions) to prevent models from relying on explicit diagnostic markers when learning to classify users. This design encourages models to learn more subtle linguistic and behavioral signals rather than trivial keyword-based cues, aligning with prior work in mental health NLP \cite{cohan-etal-2018-smhd}. Second, we filter out non-Arabic content to ensure linguistic consistency across the corpus.
+
+\subsection{Control Dataset}
+
+We further construct a control dataset in a similar manner by scraping entire public user post histories from general social media communities (e.g., r/SaudiArabia) for candidate control users. Control users are subject to strict exclusion criteria: we immediately discard a candidate if they have ever posted about a mental health-related issue on the platform. For this filtration, we use the same pattern developed to identify diagnosed users, scanning for matching phrases, medication keywords, or other mental health-related terminology. See Appendix~\ref{app:phrases} for more detail. Such stringent exclusion criteria are inspired by previous literature \cite{cohan-etal-2018-smhd} to minimize the risk of including affected users in the control group.
+
+
+
+
+
+
+\section{Annotation and Validation}
+\label{sec:annotation}
+
+\subsection{Human Annotation}
+\label{subsec:human_annotation}
+
+To assess the false positive rate and retrieval quality of the pipeline,
+two native Arabic-speaking annotators independently labeled stratified
+samples from both corpora: 100 posts from CARMA-X and 100 posts from
+CARMA-R, classifying each post as \texttt{True Positive} (a genuine
+self-disclosure of a mental health diagnosis) or \texttt{False Positive}
+(a post that mentioned a mental health condition without constituting a
+genuine diagnosis, such as through metaphor or sarcasm). On the CARMA-X
+sample, the annotators agreed on 71 of 100 posts (71.0\%), yielding
+Cohen's $\kappa = 0.430$. On the CARMA-R sample, agreement was higher,
+with 96 of 100 posts (96.0\%) labeled identically ($\kappa = 0.756$).
+The lower agreement on CARMA-X reflects the challenging nature of short
+X posts, where informal language and the figurative or sarcastic use of
+health-related terms make it more difficult to reliably distinguish
+genuine self-disclosures from false positives
+\cite{naseem2022robust, naseem2022identification}.
+
+\subsection{LLM-as-Judge Framework}
+\label{subsec:llm_judge}
+
+To verify whether candidate posts contain genuine first-person mental
+health disclosures, we employ an LLM-as-Judge framework
+\cite{zheng2023judging} using three large language models: GPT-4.1
+\footnote{\url{https://openai.com/api/}} \cite{achiam2023gpt},
+Qwen3-235B-A22B \cite{qwen3technicalreport}, and Jais-2-8B-Chat
+\cite{jais2_2025}. Each model is prompted independently with the same
+structured prompt (Appendix~\ref{app:prompt}) to classify each post as
+either \texttt{<genuine>} (a real, first-person self-disclosure of the
+target condition) or \texttt{<not\_confirmed>} (a false positive). The
+prompt instructs each model to act as a board-certified psychiatrist
+fluent in Arabic and its dialects, and to classify strictly based on
+what the author explicitly states, without inferring or assuming a
+diagnosis. This process is applied identically to candidate posts from
+both X and Reddit.
+
+GPT-4.1 provides strong general-purpose multilingual reasoning
+\cite{zhong2024agieval, moell2024comparing}; Qwen3-235B-A22B offers
+large-scale open-weight performance with strong Arabic coverage
+\cite{qwen3technicalreport}; and Jais-2-8B-Chat is a purpose-built
+Arabic language model trained on Arabic and English data with a custom
+Arabic-centric vocabulary, providing dialect-sensitive judgment across
+Modern Standard Arabic and regional varieties \cite{jais2_2025}.
+Using multiple judges mitigates individual model biases and allows us to
+measure labeling consistency across systems \cite{zheng2023judging}.
+A post is retained as confirmed only when all three judges unanimously
+agree on \texttt{<genuine>}, prioritising precision over recall to
+minimise false positives in the final corpus.
+
+\subsection{Agreement Results}
+\label{subsec:agreement}
+
+Table~\ref{tab:iaa} reports inter-model agreement among the three LLM
+judges. GPT-4.1 and Qwen3-235B achieve the \textbf{highest} pairwise
+agreement on both corpora ($\kappa = 0.659$ on CARMA-X; $\kappa = 0.652$
+on CARMA-R), indicating substantial alignment between the two larger
+models. Jais-2-8B-Chat shows consistently lower agreement with both
+peers, which we attribute to its smaller model capacity
+\cite{wei2022emergent} and higher parse failure rate. Fleiss' $\kappa$
+across all three models is 0.464 on CARMA-X and 0.427 on CARMA-R,
+reflecting moderate agreement overall, a level consistent with the
+inherent difficulty of distinguishing genuine self-disclosures from
+figurative or sarcastic mentions in short social media text.
+
+Table~\ref{tab:iaa_human} (Appendix) compares each LLM judge against the two human
+annotators. The human-to-human agreement (first row) serves as a
+reference point: moderate on CARMA-X ($\kappa = 0.430$) and substantial
+on CARMA-R ($\kappa = 0.756$), reflecting the greater ambiguity of short
+X posts. The LLM Majority vote generally achieves higher or comparable
+$\kappa$ with both annotators relative to any individual model, reaching
+up to $\kappa = 0.606$ (Ann-1, CARMA-X) and $\kappa = 0.590$ (Ann-2,
+CARMA-R). This pattern validates the ensemble approach: aggregating
+three judges mitigates the idiosyncratic errors of any single model and
+brings LLM judgments closer to the human standard. Although majority
+voting achieves closer alignment with human annotators, unanimous
+agreement is adopted to maximize corpus precision, accepting lower
+recall in favour of minimizing false positives. The lower overall
+five-rater agreement on CARMA-X (44.6\%) compared to CARMA-R (67.9\%)
+mirrors the lower human-to-human agreement on that corpus, suggesting
+the difficulty stems from the nature of X posts rather than from LLM
+shortcomings alone. Full details on how pairwise $\kappa$ values and
+sample sizes are computed are provided in
+Appendix~\ref{app:agreement_details}.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lcc}
+\toprule
+\textbf{Model Pair / Metric} & \textbf{CARMA-X} & \textbf{CARMA-R} \\
+\midrule
+GPT-4.1 vs.\ Qwen3-235B       & \textbf{0.659} & \textbf{0.652} \\
+GPT-4.1 vs.\ Jais-2-8B        & 0.370          & 0.299          \\
+Qwen3-235B vs.\ Jais-2-8B     & 0.378          & 0.363          \\
+\midrule
+Mean pairwise $\kappa$         & 0.469          & 0.438          \\
+Fleiss' $\kappa$ (all three)   & 0.464          & 0.427          \\
+\midrule
+Overall agreement (\%)         & 59.8\%         & 71.4\%         \\
+\bottomrule
+\end{tabular}
+\caption{Inter-model agreement among the three LLM judges on
+stratified 100-post samples from CARMA-X and CARMA-R.
+$\kappa$ values follow \citet{landis1977measurement}.}
+\label{tab:iaa}
+\end{table}
+
+%%%Should we select genuine posts based on majority agreement among the LLMs (at least 2 out of 3), or only when all LLMs agree??? + clear reason. 
+% LLM Majority votes looks like the better choice. Majority is more consistent with human judgments for both dataset!!!!
+%We need to teview previous studies [LLM majority votes vs LLM Unanimous]
+
+
+\section{Corpus Statistics}
+\label{sec:corpus}
+
+%\subsection{Data Filtering and Quality Control}
+%\label{subsec:filtering}
+
+%Following LLM-as-Judge annotation, we apply the following filtering criteria to the diagnosed users' posting histories on both X and Reddit to ensure data quality:
+
+%\begin{enumerate}
+%    \item \textbf{Account Type Filtering:} We exclude accounts that are not personal accounts of diagnosed individuals, including professional accounts belonging to psychiatrists and psychologists, mental health consultants' accounts, and public awareness accounts focused on general mental health education.
+    
+%    \item \textbf{Mental Health Disclosure Removal:} Posts containing explicit mental health disclosures are removed from users' posting histories. This step prevents models from learning to identify users based solely on self-disclosure statements rather than underlying linguistic patterns associated with mental health conditions \cite{cohan-etal-2018-smhd}.
+    
+%    \item \textbf{Repost Exclusion:} All reposts are excluded from the final dataset to focus on original content produced by users.
+    
+%    \item \textbf{Minimum Post Threshold:} Users with fewer than 50 posts are excluded to ensure sufficient textual data for analysis.
+%\end{enumerate}
+
+% Annotator 1 = Amal; Annotator 2 = Saad (consistent across both corpora)
+
+
+
+\subsection{Overview}
+\label{subsec:corpus_overview}
+The resulting corpora comprise 9,336 unique users in CARMA-X and 3,080 in CARMA-R. Although the pipeline targets 21 conditions, Some conditions yielded insufficient confirmed users and are excluded from analysis. Table~\ref{tab:corpus_summary} presents the per-condition user distribution. 
+
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrr}
+\toprule
+\textbf{Condition} & \textbf{CARMA-X} & \textbf{CARMA-R} \\
+\midrule
+Depression          & 4,037 & 1,342 \\
+Anxiety             & 1,862 &   537 \\
+Panic Disorder      & 1,368 &   109 \\
+OCD                 &   499 &   221 \\
+ADHD                &   374 &   386 \\
+Autism              &    344 &    85 \\
+Eating Disorder     &   264 &    41 \\
+Schizophrenia       &   232 &    29 \\
+Bipolar Disorder    &   193 &    66 \\
+BPD                 &   175 &    79 \\
+PTSD                &   158 &    66 \\
+Sleep Disorder      & 1,113 &   284 \\
+Trichotillomania    &    78 &     9 \\
+Suicidal Ideation   &    64 &    75 \\
+Paranoid PD         &    29 &     6 \\
+DID                 &    23 &     2 \\
+\midrule
+\textbf{Unique users}          & \textbf{9,336} & \textbf{3,080} \\
+\textbf{Sum across conditions} & \textbf{10,873}   & \textbf{3,337} \\
+\bottomrule
+\end{tabular}
+\caption{Distribution of users across 16 retained mental health
+conditions in CARMA-X and CARMA-R. Each cell counts unique users
+confirmed by unanimous \texttt{<genuine>} agreement across all three
+LLM judges. Users self-reporting multiple conditions are counted once
+per condition. Conditions sorted by CARMA-X frequency. *Conditions with low sample size are excluded from the subsequent experiments but are still included in official the dataset.
+(§\ref{subsec:corpus_overview}).}
+\label{tab:corpus_summary}
+\end{table}
+
+
+Once a user is confirmed as genuine by unanimous LLM-judge agreement, we retrieve their complete posting history to enable longitudinal analysis beyond the initial self-disclosure post.
+
+
+\subsection{Language and Dialect}
+Dialect identification was performed using CAMeLBERT-Mix DID NADI Model\footnote{\url{https://huggingface.co/CAMeL-Lab/bert-base-arabic-camelbert-mix-did-nadi}} \cite{inoue-etal-2021-interplay}, a BERT-based transformer fine-tuned on the NADI country-level dataset for Arabic dialect classification. As shown in Figure~\ref{fig:dialect_platform}, 
+Gulf Arabic dominated CARMA-X (42.66\%) while Egyptian Arabic 
+prevailed in CARMA-R (55.75\%). Within each dialect group, 
+Saudi Arabia and Egypt are the primary contributors respectively, consistent with their status as two of the most populous Arabic-speaking countries, with approximately 35 million and 116 million inhabitants as of 2024\footnote{Population estimates sourced from official 2024 UN demographic data.} \citep{un2024wpp_data}. The pronounced contrast between Gulf-dominant CARMA-X and Egyptian-dominant 
+CARMA-R suggests that Gulf Arabic speakers are more active on 
+Twitter/X, while Egyptian Arabic speakers show stronger presence on Reddit, underscoring the platform-specific nature of Arabic dialect distribution in mental health discourse.
+
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=\linewidth]{latex/figures/dialect_pie_by_platform.png}
+    \caption{Arabic Dialect Distribution by Platform}
+    \label{fig:dialect_platform}
+\end{figure*}
+\subsection{Comorbidity Analysis}
+\label{subsec:comorbidity}
+
+\begin{table}[t]
+\centering
+\begin{tabular}{lrr}
+\toprule
+\textbf{\# Class} & \textbf{Reddit} & \textbf{Twitter} \\
+\midrule
+1 & 3025 & 9269 \\
+2 & 52   & 60   \\
+3 & 2    & 6    \\
+4 & 1    & 1    \\
+\bottomrule
+\end{tabular}
+\caption{Comorbidity class counts for Reddit and Twitter datasets, adjusted to match total unique user counts (3,080 Reddit users; 9,336 Twitter users).}
+\label{tab:comorbidity_counts}
+\end{table}
+It is common for multiple mental health conditions to co-occur within the same individual \cite{cohan-etal-2018-smhd}. We therefore analyze comorbidity patterns across diagnosed users in our dataset. Table~\ref{tab:comorbidity_counts} reports the number of users exhibiting one or more diagnosed conditions across both platforms.
+
+The majority of users are associated with a single condition, with 4,552 users on Reddit and 1,999 users on Twitter falling into this category. A smaller subset of users exhibit comorbidity, with 54 Reddit users and 32 Twitter users associated with two conditions. Higher-order comorbidities are rare, with only a handful of users presenting three or four co-occurring conditions.
+
+These findings suggest that while comorbidity exists in the dataset, it remains relatively infrequent, reflecting both the natural distribution of self-reported diagnoses and the precision-oriented design of our extraction pipeline. The limited number of multi-condition users also highlights the importance of treating each condition as a distinct classification task while acknowledging potential overlap in downstream analyses.
+\section{Experiments}
+\label{sec:experiments}
+
+We conducted two binary classification experiments to evaluate the utility of the dataset for downstream classification tasks. The first experiment employed classical models trained on bag-of-words features using TF-IDF representations at the post level, while the second leveraged pre-trained language models (PLMs) fine-tuned at the user level. This distinction reflects the differing capabilities of the models: classical models are well-suited for independent, high-volume post-level classification, whereas PLMs can better capture contextual and stylistic patterns when provided with richer user-level signals.
+
+For classical models, each post is treated as an independent instance, and labels are inherited from the corresponding user. For PLMs, we aggregate user posts into a single sequence per user (with truncation where necessary) and perform classification at the user level. This design allows PLMs to leverage broader contextual information across a user’s writing, while avoiding the limitations of applying classical methods to long-form aggregated text.
+
+Both experiments use a balanced 1:1 ratio of diagnosed to control samples. Our primary goal is to demonstrate the dataset’s utility across modeling paradigms rather than to optimize classification performance.
+
+\subsection{Experimental Setup}
+\label{subsec:setup}
+
+We frame the task as binary classification: for each mental health condition $C$, the goal is to classify whether a user's data belongs to a user diagnosed with $C$ (positive) or a control user (negative). Control users are randomly sampled from Arabic-speaking users with no self-reported mental health conditions.
+
+For the classical setup, classification is performed at the post level, where each post inherits the label of its author. For the PLM setup, classification is performed at the user level, where each user is represented by an aggregation of their posts into a single input sequence.
+
+We split the data into 90\% training and 10\% test sets, ensuring no user appears across multiple splits. For post-level experiments, this constraint is enforced by grouping posts by user prior to splitting to prevent leakage. All experiments are conducted separately on CARMA-X (Twitter) and CARMA-R (Reddit) to enable cross-platform comparison.
+
+
+\subsection{Models}
+\label{subsec:models}
+
+\textbf{Classical Classifiers.} We train four traditional machine learning models on TF-IDF bag-of-words features: Naive Bayes (NB), Logistic Regression (LR), Support Vector Machines (SVM), and XGBoost (XGB). These serve as baselines to assess whether simple lexical features can capture condition-specific language patterns.
+
+\textbf{Pre-trained Language Models (PLMs).} We fine-tune two Arabic PLMs:
+\begin{itemize}
+    \item \textbf{AraBERT-Twitter} (\texttt{aubmindlab/bert-base-arabertv02-twitter}): A BERT model pre-trained on Arabic tweets, well-suited for social media text.
+    \item \textbf{CAMeLBERT} (\texttt{CAMeL-Lab/bert-base-arabic-camelbert-mix}): A BERT model pre-trained on a diverse mix of Arabic text including Modern Standard Arabic and dialectal content.
+\end{itemize}
+For fine-tuning, we use a learning rate of 2e-5, batch size of 16, and train for 3 epochs with early stopping based on validation F1.
+
+\subsection{Evaluation}
+\label{subsec:eval}
+
+We evaluate all models using four standard metrics: F1-score, Accuracy, Precision, and Recall. F1-score serves as our primary metric as it balances precision and recall, which is important given the class imbalance across conditions. We report results separately for Twitter (Tw) and Reddit (Rd) to facilitate cross-platform comparison. All metrics are computed on the held-out test set.
+
+
+
+% ============================================================
+% §7  RESULTS AND ANALYSIS  (~0.75 page)
+% STATUS: MISSING : depends on experiments being run.
+%
+% For a resource paper, the results section should:
+%   (1) Present per-condition classification results table
+%   (2) Discuss overall trends (which conditions are easier
+%       to detect, which are harder)
+%   (3) Compare CARMA-X vs CARMA-R performance differences
+% ============================================================
+
+\section{Results and Discussion}
+\label{sec:results}
+
+Table~\ref{tab:results_summary} summarizes the best F1 scores per condition for both classical classifiers and PLMs. Full per-model breakdowns are provided in Appendix Tables~\ref{tab:results_classical_full} and~\ref{tab:results_plm_full}.
+
+% \input{results_summary.tex}
+
+\subsection{Classical Classifier Performance}
+
+\textbf{Best-performing conditions.} Eating disorder achieves the highest F1 scores across both platforms, with LR reaching .84 on Twitter and .77 on Reddit. Panic disorder also shows strong performance (.81 F1 with SVM on Twitter, .74 on Reddit). These conditions may exhibit more distinctive linguistic markers in self-disclosure posts.
+
+\textbf{Challenging conditions.} Depression and sleep disorder prove most difficult, with F1 scores ranging from .56--.70 on Twitter and .56--.62 on Reddit. Despite having the largest sample sizes (503,618 Reddit users for depression), these conditions show lower discriminability, suggesting their linguistic signatures overlap substantially with control users.
+
+\textbf{Model comparison.} SVM consistently achieves the highest or near-highest F1 across conditions on Twitter (e.g., .72 for anxiety, .72 for bipolar, .81 for panic). On Reddit, performance differences between classifiers are smaller, with most models achieving similar scores within 2--3 points.
+
+\subsection{PLM Performance}
+
+\textbf{Twitter results.} PLMs achieve notably high F1 on Twitter for several conditions: PTSD and schizophrenia reach 1.0 F1, while ADHD (.92), autism (.95), depression (.88), and suicidal ideation (.91) all exceed .85. These results substantially outperform classical classifiers on the same conditions. This performance can be attributed to the shorter and more focused nature of Twitter posts, the use of user-level aggregation for PLMs, and the high precision of the data collection pipeline.
+
+
+\textbf{Reddit results.} PLM performance on Reddit is considerably lower than Twitter. CAMeLBERT generally outperforms AraBERT-Twitter on Reddit: for anxiety (.70 vs .51), autism (.67 vs .47), bipolar (.62 vs .46), and sleep disorder (.74 vs .54). This suggests CAMeLBERT's diverse pre-training data better captures Reddit's linguistic style.
+
+\subsection{Cross-Platform Comparison}
+
+Classical classifiers show a consistent pattern: Twitter F1 scores exceed Reddit scores for 10 of 12 conditions. The gap is largest for anxiety (Twitter .72, Reddit .59--61), schizophrenia (Twitter .73, Reddit .60--65), and depression (Twitter .70, Reddit .56--60). Only BPD shows comparable performance across platforms (.67--.72 Twitter, .64--.68 Reddit).
+
+PLMs amplify this cross-platform gap. On Twitter, PLMs achieve F1 $\geq$ .88 for 7 conditions where data is available. On Reddit, only sleep disorder (.74 with CAMeLBERT) and anxiety (.70 with CAMeLBERT) exceed .70. This disparity likely reflects that AraBERT-Twitter was pre-trained on Twitter data, while Reddit's longer-form content and different dialectal distribution pose a domain shift challenge.
+
+
+\section{Conclusion}
+We introduced CARMA-X and CARMA-R, two large-scale Arabic mental health corpora comprising over 12,000 unique users across 16 mental health conditions from X and Reddit. Our work addresses a critical gap in Arabic NLP resources for mental health research. We developed a dialect-aware extraction pipeline that identifies self-reported diagnoses across Gulf, Egyptian, Levantine, and Modern Standard Arabic, validated through an LLM-as-Judge framework with three independent models achieving moderate inter-annotator agreement.
+
+Our baseline experiments demonstrate that both classical classifiers and pre-trained language models can distinguish diagnosed users from controls, with PLMs achieving F1 scores exceeding 0.90 for several conditions on Twitter. The cross-platform performance gap, where Twitter consistently outperforms Reddit, highlights the domain-specific challenges of Arabic mental health detection and the need for platform-adapted models.
+
+We release these corpora to facilitate future research in Arabic computational psychiatry, dialectal NLP, and cross-cultural mental health analysis. We hope CARMA will serve as a foundation for developing more inclusive mental health technologies for the Arabic-speaking world.
+
+
+
+
+
+
+\section*{Limitations}
+\paragraph{Annotation Pipeline Reliability.}
+A small proportion of LLM judge responses failed to parse due to malformed output or API content-safety refusals (Qwen: 59 posts across both corpora; Jais: up to 13\% raw failure rate, reduced to $<$0.01\% after post-hoc normalization). Unrecoverable responses were treated as abstentions and excluded from the unanimous-agreement corpus.
+
+\paragraph{Sensitive Data Handling.}
+This work involves sensitive personal health information derived from social media. Despite our best efforts to anonymize data---including pseudonymizing user identifiers, removing self-disclosure posts, and withholding raw post content---residual re-identification risks may remain. To mitigate misuse, the dataset will be distributed exclusively under a Data Use Agreement (DUA) that restricts access to qualified researchers and prohibits attempts to re-identify individuals.
+
+
+\section*{Ethical Considerations}
+\label{sec:ethics}
+This study involves publicly available social media data from users who have voluntarily disclosed their mental health status. We acknowledge the sensitive nature of mental health data and have implemented several safeguards to protect user privacy as listed below. 
+
+All data collection adheres to X's and Reddit's Terms of Service and API usage guidelines at the time of collection. For X, we collect only publicly available posts via the Twikit library. For Reddit, we use pre-downloaded public archives from Arctic Shift, which contain posts from publicly accessible Arabic-speaking subreddits. In both cases, we collect only content that users have chosen to share publicly.
+
+We do not release raw post content or any information that could be used to directly identify individual users. User identifiers are pseudonymized in all released materials. We release only aggregated statistics and model outputs, consistent with best practices in social media mental health research \cite{harrigian2021state}.
+
+The corpora are intended solely for research purposes, specifically to advance Arabic NLP for mental health detection. We recognize that users who disclose mental health conditions on social media may not anticipate their posts being used in research. We mitigate this concern by removing all self-disclosure posts from users' released posting histories, ensuring that the data cannot be used to re-identify individuals based on their diagnostic disclosures. Researchers using these corpora should adhere to ethical guidelines for mental health research and avoid applications that could stigmatize or harm the individuals represented in the data.
+
+
+% Bibliography entries for the entire Anthology, followed by custom entries
+%\bibliography{anthology,custom}
+% Custom bibliography entries only
+\bibliography{custom}
+
+\appendix
+
+\section{Full Classification Results}
+Tables \ref{tab:results_classical_full} and \ref{tab:results_plm_full} show the entire results from our two classification experiments.
+
+\label{app:full_results}
+
+\input{results_classical.tex}
+\input{results_plm.tex}
+
+\begin{table}[h]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcc}
+\toprule
+\textbf{Annotator Pair} & \textbf{CARMA-X} & \textbf{CARMA-R} \\
+\midrule
+Ann-1 vs.\ Ann-2          & 0.430 & 0.756 \\
+\midrule
+Ann-1 vs.\ GPT-4.1        & 0.557 & 0.433 \\
+Ann-1 vs.\ Qwen3-235B     & 0.558 & 0.563 \\
+Ann-1 vs.\ Jais-2-8B      & 0.433 & 0.273 \\
+Ann-1 vs.\ LLM Majority   & 0.606 & 0.553 \\
+Ann-1 vs.\ LLM Unanimous  & 0.475 & 0.305 \\
+\midrule
+Ann-2 vs.\ GPT-4.1        & 0.478 & 0.414 \\
+Ann-2 vs.\ Qwen3-235B     & 0.337 & 0.541 \\
+Ann-2 vs.\ Jais-2-8B      & 0.436 & 0.212 \\
+Ann-2 vs.\ LLM Majority   & 0.423 & 0.590 \\
+Ann-2 vs.\ LLM Unanimous  & 0.283 & 0.269 \\
+\midrule
+Mean pairwise $\kappa$      & 0.459 & 0.415 \\
+Fleiss' $\kappa$ (all five) & 0.446 & 0.447 \\
+\midrule
+Overall agreement (\%)      & 44.6\% & 67.9\% \\
+\bottomrule
+\end{tabular}}
+\caption{Pairwise Cohen's $\kappa$ between human annotators (Ann-1,
+Ann-2) and LLM judges on stratified 100-post samples from CARMA-X
+and CARMA-R. LLM Majority = majority vote across all three models
+(reported for comparison only); the corpus retains only posts with
+\emph{unanimous} \texttt{<genuine>} agreement across all three
+judges. $\kappa$ values follow \citet{landis1977measurement}.}
+\label{tab:iaa_human}
+\end{table}
+
+%\section{Example Appendix}
+%\label{sec:appendix}
+%\appendix
+
+
+
+%\section{Medication Lexicon}
+%\label{app:medications}
+
+%The pipeline detects psychiatric medication mentions using a lexicon of over 300 terms. The lexicon covers:
+
+%\begin{itemize}
+%    \item \textbf{Arabic transliterations} with both hamza
+%    (\foreignlanguage{arabic}{أ}) and plain alef
+%    (\foreignlanguage{arabic}{ا}) variants (e.g.,
+%    \foreignlanguage{arabic}{إسيتالوبرام/اسيتالوبرام})
+%    \item \textbf{English generic names} (e.g., sertraline,
+%    fluoxetine, quetiapine)
+%    \item \textbf{Brand names} (e.g., Prozac, Zoloft, Seroquel,
+%    Cipralex)
+%    \item \textbf{Colloquial terms}
+%    (e.g., \foreignlanguage
+%    \foreignlanguage{arabic}{مضادات الاكتئاب}
+%    [\textit{antidepressants}])
+%\end{itemize}
+
+%English terms are matched using word-boundary regex to prevent false positives (e.g., \textit{add} inside \textit{added}), while Arabic terms use substring matching since the \texttt{\textbackslash b} word boundary does not apply to Arabic script.
+
+%\section{Comorbidity Analysis}
+%\label{app:comorbidity}
+
+%The pipeline includes a post-processing module that merges all
+%per-condition results to identify comorbid presentations. For each
+%unique post or comment, the module lists all matched conditions and
+%produces three outputs: (1) a unified dataset with a
+%\texttt{Conditions} column listing every matched condition per post
+%and a \texttt{Condition\_Count} field; (2) an $N \times N$ condition
+%co-occurrence matrix showing how many posts matched each pair of
+%conditions simultaneously; and (3) a per-condition summary with
+%overlap statistics. Users can set a minimum condition threshold
+%(e.g., $\geq 2$) to isolate true comorbidity cases.
+
+\section{LLM Classification Prompt}
+\label{app:prompt}
+
+We use a two-part prompt structure for LLM-based classification: a \texttt{SYSTEM\_PROMPT} that defines the classifier's role, rules, and output schema, and a \texttt{USER\_TEMPLATE} that instantiates each example with the post, bio, and target condition.
+
+\subsection*{System Prompt}
+
+\begin{tcolorbox}[
+  breakable,
+  enhanced,
+  colback=gray!5,
+  colframe=gray!50,
+  fontupper=\small\ttfamily,
+  coltitle=black,
+  attach boxed title to top left={yshift=-2mm, xshift=4mm},
+  boxed title style={colback=gray!20, colframe=gray!50}
+]
+You are a board-certified psychiatrist and clinical researcher specializing in mental health diagnosis. Your native language is Arabic, and you are fluent in English. You understand Arabic dialects, including Gulf, Egyptian, Levantine, and Modern Standard Arabic (MSA), as well as slang, religious expressions, sarcasm, figurative language, and informal social media communication. You are familiar with the cultural and social context of mental health in Arab societies.
+
+Your task is text classification only. Classify based on what the author explicitly states, do not infer or assume a diagnosis.
+
+\medskip\textbf{TASK:}\\
+The post was collected using self-disclosure keyword phrases for \{condition\} (\{condition\_ar\}). Determine whether the post is:
+\begin{itemize}
+  \item \texttt{<genuine>}: a real, first-person self-disclosure of \{condition\}, OR
+  \item \texttt{<not\_confirmed>}: NOT a real self-disclosure (false positive).
+\end{itemize}
+
+\medskip\textbf{DEFAULT RULE:}\\
+When in doubt, label \texttt{<not\_confirmed>}.
+
+\medskip\hrule\medskip
+
+\textbf{REASON TAGS} (list ALL that apply)
+
+\textit{Genuine evidence:}
+\begin{itemize}
+  \item \texttt{explicit\_self\_disclosure}: Clear first-person statement of having the condition
+  \item \texttt{treatment\_or\_medication}: Mentions own medication, therapy, doctor visits, or treatment history
+  \item \texttt{symptom\_description\_self}: Describes personal symptoms or lived experience
+  \item \texttt{help\_seeking\_self}: Asking for help, resources, or support for their own condition
+\end{itemize}
+
+\textit{Not genuine evidence:}
+\begin{itemize}
+  \item \texttt{metaphor\_or\_exaggeration}: Condition used figuratively or dramatically
+  \item \texttt{humor\_or\_sarcasm}: Used jokingly or as a punchline
+  \item \texttt{third\_person\_reference}: Talking about someone else's condition
+  \item \texttt{negation\_or\_denial}: Explicitly states they do NOT have the condition
+  \item \texttt{self\_questioning\_or\_uncertain}: Suspicion without confirmed diagnosis
+  \item \texttt{professional\_or\_organizational\_account}: Doctor, clinic, media, or awareness page
+  \item \texttt{community\_or\_repost\_account}: Account reposts followers' messages
+  \item \texttt{news\_or\_public\_content}: News, educational, or awareness content
+\end{itemize}
+
+\medskip\hrule\medskip
+
+\textbf{CLASSIFICATION RULES}
+
+Label \texttt{<genuine>} if the author sincerely states they have \{condition\}, describes their personal experience, seeks help or treatment for their own \{condition\}, or discusses their own medication, symptoms, or diagnosis history.
+
+
+Label \texttt{<not\_confirmed>} if ANY of the following apply: humor or sarcasm; figurative use; news or third-party reporting; professional or educational posts; community/repost accounts; roleplay or fiction; self-questioning without confirmed diagnosis; explicit negation; third-person discussion; stigmatizing usage; or a vague mention with no sincere self-disclosure intent.
+
+\medskip\hrule\medskip
+
+\textbf{USING THE BIO}
+
+Use BOTH the post and the bio together. A professional, organizational, media, or community bio strongly supports \texttt{<not\_confirmed>}, unless the post contains a clear first-person statement about the author's own diagnosis. A patient identity or direct address to a doctor or support organization supports \texttt{<genuine>}. Specific medications, symptoms, treatment history, or duration strongly support \texttt{<genuine>}.
+
+\medskip\hrule\medskip
+
+\textbf{OUTPUT FORMAT}\\
+Output ONLY the following two fields. No preamble, reasoning, or explanation.
+
+\medskip
+\texttt{Label: <genuine>} or \texttt{<not\_confirmed>}\\
+\texttt{Reasons: one or more tags, comma-separated}
+\end{tcolorbox}
+
+\subsection*{User Template}
+
+\begin{tcolorbox}[
+  breakable,
+  enhanced,
+  colback=gray!5,
+  colframe=gray!50,
+  fontupper=\small\ttfamily,
+  coltitle=black,
+  attach boxed title to top left={yshift=-2mm, xshift=4mm},
+  boxed title style={colback=gray!20, colframe=gray!50}
+]
+Post: \{post\}\\
+Bio: \{bio\}\\
+Condition: \{condition\} (\{condition\_ar\})
+
+\medskip
+Label:\\
+Reasons:
+\end{tcolorbox}
+
+
+\section{Condition Keyword Lists}
+\label{app:keywords}
+
+Table~\ref{tab:keywords} lists the Arabic and English condition
+keywords used by the pipeline for each of the 16 retained conditions.
+Keywords marked with $\dagger$ are \textit{restricted}: they are
+permitted only in combination with suffering-class phrases
+(\foreignlanguage{arabic}{أعاني من}, \foreignlanguage{arabic}{بعاني من})
+to reduce standalone false positives. Orthographic variants (hamza /
+hamza-less; taa marbuta \foreignlanguage{arabic}{ة} /
+\foreignlanguage{arabic}{ه}) are generated automatically and are not
+listed separately.
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Condition keyword inventory (16 conditions retained, 341 keyword forms including English and Arabic variants). $\dagger$ = restricted to suffering phrases only.}
+\label{tab:keywords}
+\begin{tabular}{p{2.8cm} p{2.2cm} p{10.2cm}}
+\toprule
+\textbf{Condition} & \textbf{Arabic Label} & \textbf{Representative Keywords (Arabic / English)} \\
+\midrule
+Schizophrenia &
+\foreignlanguage{arabic}{الفصام} &
+\foreignlanguage{arabic}{فصام، الفصام، شيزوفرينيا، اضطراب الفصام، انفصام الشخصية، الاضطراب الفصامي الوجداني، سكيزوأفكتيف} /
+\textit{schizophrenia, schizoaffective disorder} \\
+\addlinespace
+Bipolar Disorder &
+\foreignlanguage{arabic}{ثنائي القطب} &
+\foreignlanguage{arabic}{ثنائي القطب، اضطراب ثنائي القطب، بايبولار، هوس خفيف، مانيا، سيكلوثيميا} /
+\textit{bipolar disorder, bipolar I/II, hypomania, mania, cyclothymia} \\
+\addlinespace
+Depression &
+\foreignlanguage{arabic}{الاكتئاب} &
+\foreignlanguage{arabic}{اكتئاب، الاكتئاب، اكتئاب حاد $/$ مزمن، اكتئاب ما بعد الولادة، الاكتئاب الموسمي، ديبريشن، سوء المزاج} /
+\textit{depression, MDD, dysthymia, postpartum depression, seasonal affective disorder} \\
+\addlinespace
+Anxiety &
+\foreignlanguage{arabic}{اضطراب القلق} &
+\foreignlanguage{arabic}{اضطراب القلق، قلق عام $/$ مرضي $/$ مزمن، رهاب اجتماعي، قلق اجتماعي، رهاب الخلاء، قلق الانفصال} /
+\textit{generalized anxiety, social anxiety, GAD, agoraphobia, specific phobia} \\
+\addlinespace
+Panic Disorder &
+\foreignlanguage{arabic}{اضطراب الهلع} &
+\foreignlanguage{arabic}{نوبة هلع، نوبات هلع، الهلع، اضطراب الهلع، نوبة ذعر} /
+\textit{panic attack, panic disorder} \\
+\addlinespace
+OCD &
+\foreignlanguage{arabic}{الوسواس القهري} &
+\foreignlanguage{arabic}{وسواس قهري، الوسواس القهري، الوسواس الديني، وسواس الطهارة، ديسمورفيا، اكتناز مرضي} /
+\textit{OCD, body dysmorphic disorder, BDD, hoarding disorder, scrupulosity} \\
+\addlinespace
+PTSD &
+\foreignlanguage{arabic}{اضطراب ما بعد الصدمة} &
+\foreignlanguage{arabic}{اضطراب ما بعد الصدمة، صدمة نفسية، صدمة معقدة، كرب ما بعد الصدمة} /
+\textit{PTSD, C-PTSD, complex PTSD, acute stress disorder} \\
+\addlinespace
+Eating Disorder &
+\foreignlanguage{arabic}{اضطراب الأكل} &
+\foreignlanguage{arabic}{فقدان الشهية العصبي، أنوركسيا، الشره المرضي، بوليميا، نهم الطعام، $ARFID$} /
+\textit{anorexia, bulimia, binge eating disorder, ARFID, orthorexia} \\
+\addlinespace
+ADHD &
+\foreignlanguage{arabic}{فرط الحركة وتشتت الانتباه} &
+\foreignlanguage{arabic}{$ADHD$، فرط حركة، تشتت انتباه، نقص الانتباه، اضطراب الانتباه} /
+\textit{ADHD, attention deficit hyperactivity disorder; ADD$\dagger$} \\
+\addlinespace
+Autism &
+\foreignlanguage{arabic}{التوحد} &
+\foreignlanguage{arabic}{التوحد، توحد، اضطراب طيف التوحد، طيف التوحد، أسبرجر، متلازمة أسبرجر} /
+\textit{autism spectrum disorder, Asperger's} \\
+\addlinespace
+DID &
+\foreignlanguage{arabic}{اضطراب الهوية التفارقي} &
+\foreignlanguage{arabic}{اضطراب الهوية التفارقي، تعدد الشخصيات} /
+\textit{dissociative identity disorder, DID, multiple personality disorder} \\
+\addlinespace
+Sleep Disorder &
+\foreignlanguage{arabic}{اضطراب النوم} &
+\foreignlanguage{arabic}{الأرق، أرق، انقطاع النفس النومي، فرط النوم، الخدار} /
+\textit{insomnia, sleep apnea, hypersomnia, narcolepsy} \\
+\addlinespace
+Trichotillomania &
+\foreignlanguage{arabic}{اضطراب شد الشعر} &
+\foreignlanguage{arabic}{شد الشعر، نتف الشعر، نتف الجلد، قضم الأظافر} /
+\textit{trichotillomania, excoriation disorder, onychophagia} \\
+\addlinespace
+BPD &
+\foreignlanguage{arabic}{اضطراب الشخصية الحدية} &
+\foreignlanguage{arabic}{اضطراب الشخصية الحدية، الحدية، بوردرلاين} /
+\textit{borderline personality disorder, BPD} \\
+\addlinespace
+Paranoid PD &
+\foreignlanguage{arabic}{اضطراب الشخصية الزوراني} &
+\foreignlanguage{arabic}{اضطراب الشخصية الزوراني، الشخصية البارانوية، البارانويا} /
+\textit{paranoid personality disorder} \\
+\addlinespace
+Suicidal Ideation &
+\foreignlanguage{arabic}{الأفكار الانتحارية} &
+\foreignlanguage{arabic}{أفكار انتحارية، الفكر الانتحاري} /
+\textit{suicidal thoughts, suicidal ideation;
+\foreignlanguage{arabic}{انتحار}
+$\dagger$، \foreignlanguage{arabic}{محاولة انتحار}$\dagger$، \foreignlanguage{arabic}{إيذاء النفس}$\dagger$ / suicide attempt$\dagger$, self-harm$\dagger$} \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\section{Self-Disclosure Phrase Inventory}
+\label{app:phrases}
+
+Tables~\ref{tab:phrases_universal} and~\ref{tab:phrases_dialect} list
+the full self-disclosure phrase inventory (117 universal + 30 dialect-specific not in the universal set = 147 total unique phrases). Universal phrases
+(Table~\ref{tab:phrases_universal}) apply across all dialects; they are
+organized by semantic type and connector class. Dialect-specific phrases
+(Table~\ref{tab:phrases_dialect}) supplement the universal set with
+register-appropriate variants for Gulf, Levantine, Egyptian, Maghrebi,
+and Modern Standard Arabic (MSA). Orthographic variants (hamza /
+hamza-less; taa marbuta \foreignlanguage{arabic}{ة} /
+\foreignlanguage{arabic}{ه}) are generated automatically at runtime and
+not listed separately.
+
+\begin{table}[t]
+\nolinenumbers
+\centering
+\small
+\begin{tabular}{lcccc}
+\toprule
+\multirow{2}{*}{Condition} & \multicolumn{2}{c}{Classical (Best)} & \multicolumn{2}{c}{PLM (Best)} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+ & Tw & Rd & Tw & Rd \\
+\midrule
+ADHD & .63 & .62 & .92 & .64 \\
+Anxiety & .72 & .61 & --- & .71 \\
+Autism & .71 & .64 & .95 & .67 \\
+Bipolar & .72 & .62 & --- & .63 \\
+BPD & .72 & .68 & --- & .55 \\
+Depression & .70 & .60 & .88 & .59 \\
+Eating dis. & .84 & .78 & --- & --- \\
+OCD & .77 & .62 & --- & .60 \\
+Panic & .81 & .74 & --- & .71 \\
+PTSD & .68 & .64 & 1.0 & .47 \\
+Schizophrenia & .73 & .65 & 1.0 & --- \\
+Sleep dis. & .62 & .62 & --- & .74 \\
+Suicidal & .70 & .64 & .91 & .65 \\
+\bottomrule
+\end{tabular}
+\caption{Summary of best F1 scores per condition. Tw = Twitter (CARMA-X), Rd = Reddit (CARMA-R). Full results in Appendix Tables~\ref{tab:results_classical_full} and~\ref{tab:results_plm_full}.}
+\label{tab:results_summary}
+\end{table}
+\linenumbers
+
+\begin{table}[t]
+\centering
+\small
+\caption{Universal self-disclosure phrases by type and connector class.
+\textbf{B} = \foreignlanguage{arabic}{بـ} connector;
+\textbf{M} = \foreignlanguage{arabic}{من} connector;
+\textbf{D} = direct (no connector).}
+\label{tab:phrases_universal}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{p{2.6cm} c p{5.6cm}}
+\toprule
+\textbf{Type} & \textbf{Conn.} & \textbf{Phrases} \\
+\midrule
+Affliction & B &
+\foreignlanguage{arabic}{أنا مصاب $/$ انا مصاب، أنا مصابة، أنا مريض، أنا مريضة، كشخص مصاب} \\
+\addlinespace
+Suffering & M &
+\foreignlanguage{arabic}{أعاني من $/$ اعاني من، أنا أعاني من، أنا أتعالج من، أنا أعيش مع، أصبت} \\
+\addlinespace
+Clinical Diagnosis & B &
+\foreignlanguage{arabic}{تم تشخيصي، شخصوني، شخصني، شخصتني، شخصت، شخصني الطبيب، شخصني الدكتور، شخصتني الطبيبة، شخصتني الدكتورة، الأخصائي شخصني، الأخصائية شخصتني} \\
+\addlinespace
+Possessive & D &
+\foreignlanguage{arabic}{عندي، أنا عندي} \\
+\addlinespace
+Discovery / & B &
+\foreignlanguage{arabic}{طلعت مصاب، لقيت نفسي مصاب، اكتشفت إني مصاب، عرفت إن أنا مصاب، اتأكدت إني مصاب، كنت مصاب} \\
+Confirmation & D &
+\foreignlanguage{arabic}{تشخيصي هو، تشخيصي كان، طلع تشخيصي، طلعت عندي، لقيت نفسي عندي، اكتشفت إن عندي، عرفت إني عندي، اتأكدت إن عندي، بعد التشخيص طلع عندي، التحليل أثبت إن عندي} \\
+\addlinespace
+Doctor Result & B &
+\foreignlanguage{arabic}{أكد الطبيب إصابتي، الدكتور أكد إصابتي، تم التأكيد على إصابتي، تم إثبات إصابتي، الدكتور أكد التشخيص، الطبيب أثبت التشخيص} \\
+& D &
+\foreignlanguage{arabic}{تشخيص الطبيب هو، تشخيص الدكتور هو، تشخيص حالتي هو، تشخيص المرض هو، تم تشخيص حالتي على أنها، التشخيص الذي حصلت عليه هو، طلع إن التشخيص هو، اتضح إن التشخيص كان} \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{table}[t]
+\centering
+\small
+\caption{Dialect-specific self-disclosure phrases.
+\textbf{B} = \foreignlanguage{arabic}{بـ} connector;
+\textbf{M} = \foreignlanguage{arabic}{من} connector;
+\textbf{D} = direct.}
+\label{tab:phrases_dialect}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{p{1.5cm} c p{6.2cm}}
+\toprule
+\textbf{Dialect} & \textbf{Conn.} & \textbf{Phrases} \\
+\midrule
+Gulf &
+B & \foreignlanguage{arabic}{انا مصاب، مبتلي، مبتلية، ابتليت} \\
+& D & \foreignlanguage{arabic}{عندي، فيني، انا متعايش، جاني، جاتني} \\
+& M & \foreignlanguage{arabic}{اعاني من} \\
+\addlinespace
+Levantine &
+B & \foreignlanguage{arabic}{انا مصاب} \\
+& D & \foreignlanguage{arabic}{عندي، معي، طلعلي، طلعتلي، صار معي، صارت معي، اجاني، اجاتني} \\
+& M & \foreignlanguage{arabic}{بعاني من، عم بعاني} \\
+\addlinespace
+Egyptian &
+B & \foreignlanguage{arabic}{انا مصاب، طلعت مصاب، لقيت نفسي مصاب، اكتشفت إني مصاب، اتأكدت إني مصاب} \\
+& D & \foreignlanguage{arabic}{عندي، معايا، جالي، جاتلي، طلعلي، طلعت عندي، لقيت نفسي عندي، اكتشفت إن عندي، اتأكدت إن عندي، عرفت إني عندي، أنا بواجه مشكلة اسمها} \\
+& M & \foreignlanguage{arabic}{بعاني من، اتشخصت} \\
+\addlinespace
+Maghrebi &
+B & \foreignlanguage{arabic}{انا مصاب} \\
+& D & \foreignlanguage{arabic}{عندي، كاين عندي، جاني، جاتني، طلعلي، تشخصت} \\
+\addlinespace
+MSA &
+B & \foreignlanguage{arabic}{أنا مصاب، أنا مصابة، شُخِّصت، شخصت} \\
+& D & \foreignlanguage{arabic}{لدي، تشخيصي هو، طلع تشخيصي، أتعايش مع} \\
+& M & \foreignlanguage{arabic}{أعاني من، تم تشخيصي} \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\section{Connector Logic and Orthographic Variants}
+\label{app:connectors}
+
+Table~\ref{tab:connectors} summarizes the three connector types used by
+the pipeline, showing how each phrase class links to the condition
+keyword and how the definite article \foreignlanguage{arabic}{ال}
+triggers the \foreignlanguage{arabic}{بال} fusion rule.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Connector rules: phrase type, connector morpheme, keyword form generated, and example.}
+\label{tab:connectors}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{p{2.0cm} c p{3.0cm} p{3.5cm}}
+\toprule
+\textbf{Phrase Type} & \textbf{Conn.} & \textbf{Keyword Form} & \textbf{Example} \\
+\midrule
+Affliction, Diagnosis, Confirmation &
+\foreignlanguage{arabic}{بـ} &
+Base kw: \foreignlanguage{arabic}{بـ}+kw \newline
+\foreignlanguage{arabic}{ال}-kw: \foreignlanguage{arabic}{بال}+stem \newline
+English: \foreignlanguage{arabic}{بـ} kw &
+\foreignlanguage{arabic}{مصاب باكتئاب} \newline
+\foreignlanguage{arabic}{مصاب بالاكتئاب} \newline
+\foreignlanguage{arabic}{مصاب بـ $PTSD$} \\
+\addlinespace
+Suffering &
+\foreignlanguage{arabic}{من} &
+Phrase ends in \foreignlanguage{arabic}{من}: bare kw \newline
+Phrase lacks \foreignlanguage{arabic}{من}: \foreignlanguage{arabic}{من}+kw &
+\foreignlanguage{arabic}{أعاني من الاكتئاب} \newline
+\foreignlanguage{arabic}{عم بعاني من اكتئاب} \\
+\addlinespace
+Possessive, Discovery &
+Direct &
+Bare or definite kw &
+\foreignlanguage{arabic}{عندي اكتئاب} \newline
+\foreignlanguage{arabic}{تشخيصي هو الفصام} \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\noindent The pipeline generates all orthographic variants automatically.
+Table~\ref{tab:ortho} lists the variant pairs handled.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Orthographic variant pairs generated automatically.}
+\label{tab:ortho}
+\begin{tabular}{lll}
+\toprule
+\textbf{Feature} & \textbf{Variant A} & \textbf{Variant B} \\
+\midrule
+Hamza on alef & \foreignlanguage{arabic}{أنا} & \foreignlanguage{arabic}{انا} \\
+Hamza in conjunction & \foreignlanguage{arabic}{إن} & \foreignlanguage{arabic}{ان} \\
+Taa marbuta & \foreignlanguage{arabic}{مصابة} & \foreignlanguage{arabic}{مصابه} \\
+Taa marbuta & \foreignlanguage{arabic}{مريضة} & \foreignlanguage{arabic}{مريضه} \\
+Hamza on \foreignlanguage{arabic}{ا} & \foreignlanguage{arabic}{أعاني} & \foreignlanguage{arabic}{اعاني} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\section{Agreement Computation Details}
+\label{app:agreement_details}
+
+\subsection*{Sample sizes and parse failures}
+
+All pairwise $\kappa$ values reported in Tables~\ref{tab:iaa}
+and~\ref{tab:iaa_human} are computed on the subset of posts where both
+raters returned a valid label. Human-to-human agreement always uses the
+full $n=100$. Jais-2-8B-Chat produced parse failures on 7\% of CARMA-X
+posts and 16\% of CARMA-R posts; any comparison involving Jais-2-8B
+excludes those posts, yielding $n=92$--$93$ on CARMA-X and $n=84$ on
+CARMA-R for affected pairs. GPT-4.1 produced a single parse failure on
+CARMA-X ($n=99$ for pairs involving GPT-4.1 on that corpus); Qwen3-235B
+produced no parse failures on either corpus. Ensemble metrics (LLM
+Majority, LLM Unanimous) and multi-rater Fleiss' $\kappa$ are computed
+on complete cases only, posts where all three LLM judges returned a
+valid label (CARMA-X $n=92$; CARMA-R $n=84$), as both metrics require
+a label from every judge. Table~\ref{tab:sample_sizes} summarises the
+effective $n$ for each annotator pair.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lcc}
+\toprule
+\textbf{Annotator Pair} & \textbf{CARMA-X} & \textbf{CARMA-R} \\
+\midrule
+Ann-1 vs.\ Ann-2          & 100 & 100 \\
+\midrule
+Ann-1/2 vs.\ GPT-4.1      &  99 & 100 \\
+Ann-1/2 vs.\ Qwen3-235B   & 100 & 100 \\
+Ann-1/2 vs.\ Jais-2-8B    &  93 &  84 \\
+Ann-1/2 vs.\ LLM Majority &  92 &  84 \\
+Ann-1/2 vs.\ LLM Unanimous&  92 &  84 \\
+\midrule
+GPT-4.1 vs.\ Qwen3-235B   &  99 & 100 \\
+GPT-4.1 vs.\ Jais-2-8B    &  92 &  84 \\
+Qwen3-235B vs.\ Jais-2-8B &  93 &  84 \\
+\midrule
+Fleiss' $\kappa$ (all)     &  92 &  84 \\
+\bottomrule
+\end{tabular}
+\caption{Effective sample size $n$ for each annotator pair after
+excluding posts with parse failures from the relevant model(s).}
+\label{tab:sample_sizes}
+\end{table}
+
+\subsection*{Kappa interpretation scale}
+
+Cohen's $\kappa$ and Fleiss' $\kappa$ values are interpreted following
+\citet{landis1977measurement}: $\kappa \leq 0.20$ slight,
+$0.21$--$0.40$ fair, $0.41$--$0.60$ moderate, $0.61$--$0.80$
+substantial, $0.81$--$1.00$ almost perfect agreement.
+
+\subsection*{Ensemble label definitions}
+
+\textbf{LLM Majority} assigns \texttt{<genuine>} to a post if at least
+two of the three LLM judges return \texttt{<genuine>}. This metric is
+reported in Table~\ref{tab:iaa_human} for comparison purposes only.
+\textbf{LLM Unanimous} assigns \texttt{<genuine>} only when all three
+judges agree. The final CARMA-X and CARMA-R corpora retain exclusively
+posts that satisfy the unanimous criterion, prioritising precision over
+recall to minimise false positives.
+
+
+
+
+
+\end{document}

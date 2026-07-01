@@ -1,0 +1,4 @@
+Node: gpu029
+GPUs: Tesla V100-PCIE-16GB, 16384 MiB
+Fixing torch CUDA version...
+torch: 2.11.0+cu126 | CUDA available: True

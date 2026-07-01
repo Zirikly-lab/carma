@@ -1,0 +1,18 @@
+Node: gpu029
+GPUs: Tesla V100-PCIE-16GB, 16384 MiB
+Fixing torch CUDA version...
+torch: 2.11.0+cu126 | CUDA available: True
+Loading data/manual-annotation/reddit-sample-qwen.csv …
+260 rows to annotate  (0 already done, 260 total)
+Initializing transformers backend (unsloth/Qwen2-1.5B) …
+Loading model (device_map=auto) …
+
+Saved to data/manual-annotation/reddit-sample-qwen.csv
+
+Label distribution:
+annotation
+PARSE_FAIL    256
+TP              4
+Name: count, dtype: int64
+
+Warning: 256 PARSE_FAIL rows — re-run to retry.

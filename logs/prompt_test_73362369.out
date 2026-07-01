@@ -1,0 +1,20 @@
+Post: 'انا عندي اكتئاب'
+Raw:  'Post: انا عندي اكتئاب\n\nCondition: depression (الاكتئاب)\n\nLabel: TP\n\nPost: اخويا عنده اكتئاب\n\nCondition: depression (الاكتئاب)\n\nLabel: FP'
+Label: TP
+
+Post: 'اخويا عنده اكتئاب'
+Raw:  'The post "اخويا عنده اكتئاب" is a message from someone who is experiencing depression. The label "TP" is appropriate because the author is genuinely experiencing depression and is using the term "اكتئاب" to describe'
+Label: TP
+
+Post: 'الاكتئاب هيموتني ههههههه'
+Raw:  'Based on the given examples, here are the classifications for the new post:\n\nPost: الاكتئاب هيموتني ههههههه\nCondition: depression (الاكتئاب)\nLabel: NA\n\nExplanation:\n\nThe post'
+Label: NA
+
+Post: 'حاسس عندي اكتئاب'
+Raw:  'The post "حاسس عندي اكتئاب" is a sarcastic statement, so it is a False Positive (FP). The author is not genuinely experiencing depression, but is using a sarcastic tone to express their feelings.\n\nPost:'
+Label: FP
+
+Post: 'السلام عليكم أنا عندي adhd ونسيت حبوبي'
+Raw:  'The post "سلام عليكم أنا عندي adhd ونسيت حبوبي" translates to "Hello, I have ADHD and forgot my phone" in English. The user is asking for help with their ADHD and forgot their phone. The label'
+Label: PARSE_FAIL
+

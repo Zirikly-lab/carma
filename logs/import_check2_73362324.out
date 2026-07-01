@@ -1,0 +1,6 @@
+torch: 2.11.0+cu126 | CUDA: True
+transformers imports OK
+tokenizer OK
+model loaded on: cuda:0
+Test output: 'Based on the given post, the label for this'
+ALL OK

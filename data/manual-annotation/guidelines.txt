@@ -1,0 +1,23 @@
+Labels
+True Positive (TP)
+Based on what I just read, do I believe this person to have the mental illness mentioned in the “diagnosis” column? Is it being captured accurately by the algorithm and/or do they mention symptoms/medications in their post? They do not have to say “I OFFICIALLY got diagnosed” to classify as a TB.
+True Positive Examples: 
+انا عندي اكتئاب
+اتشخصت ب اكتئاب
+
+False Positive (FP)
+A phrase could match the diagnosis but still not be considered a true positive because the hardcoded algorithm has shortcomings, for instance, sarcasm and talking about others. NOTE: We are not defining FP as a weak diagnosis. If you think a diagnosis is weak, this should be the next label.
+اخويا عنده اكتئاب
+الاكتاب هيموتني ههههههه
+
+Need more information to tell (NA)
+In case it IS a positive match with the algorithm but the post did not convince me the person has a mental illness. Please try your best to classify as FB or TB before using this label.
+حاسس عندي اكتئاب
+ممكن يكون عندي اكتاب
+
+
+
+ 
+
+
+
