@@ -18,7 +18,7 @@ Traceback (most recent call last):
   File "/gpfs/automountdir/gpfs/homes/SEAS/home/g21775526/code/venv/lib/python3.13/site-packages/transformers/pipelines/__init__.py", line 27, in <module>
     from ..image_processing_utils import BaseImageProcessor
   File "/gpfs/automountdir/gpfs/homes/SEAS/home/g21775526/code/venv/lib/python3.13/site-packages/transformers/image_processing_utils.py", line 24, in <module>
-    from .image_processing_base import BatchFeature, ImageProcessingMixin
+    from .image_processing_base import BatchFeature, ImativageProcessingMixin
   File "/gpfs/automountdir/gpfs/homes/SEAS/home/g21775526/code/venv/lib/python3.13/site-packages/transformers/image_processing_base.py", line 25, in <module>
     from .image_utils import is_valid_image, load_image
   File "/gpfs/automountdir/gpfs/homes/SEAS/home/g21775526/code/venv/lib/python3.13/site-packages/transformers/image_utils.py", line 54, in <module>

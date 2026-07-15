@@ -601,11 +601,11 @@ Table~\ref{tab:results_summary} summarizes the best F1 scores per condition for 
 
 \subsection{Classical Classifier Performance}
 
-\textbf{Best-performing conditions.} Eating disorder achieves the highest F1 score, with LR reaching .77. Panic disorder also shows strong performance (.74 with SVM). These conditions may exhibit more distinctive linguistic markers in self-disclosure posts.
+\textbf{Best-performing conditions.} Suicidal ideation achieves the highest F1 score (.92, NB), followed closely by bipolar disorder and eating disorder (.91, NB for both) and PTSD (.89, NB). These conditions may exhibit more distinctive lexical markers---e.g., crisis language for suicidal ideation, mood-episode and medication terminology for bipolar disorder---that TF-IDF features can readily pick up on.
 
-\textbf{Challenging conditions.} Depression and sleep disorder prove most difficult, with F1 scores ranging from .56--.62. Despite having the largest sample size (1,342 confirmed users for depression), these conditions show lower discriminability, suggesting their linguistic signatures overlap substantially with control users.
+\textbf{Challenging conditions.} Schizophrenia (.61, NB) and BPD (.68, XGB) are the most difficult conditions to classify, trailing the next-lowest condition (OCD, .81) by 13 points or more. Both conditions also have comparatively small positive-class sample sizes (12,113 and 11,688 users, respectively), which may limit the lexical patterns the classifiers can learn, in addition to symptom presentations that plausibly overlap more with other conditions and general distress.
 
-\textbf{Model comparison.} Performance differences between classifiers are generally small, with most models achieving similar scores within 2--3 points across conditions.
+\textbf{Model comparison.} Naive Bayes attains the highest mean F1 across conditions (.837), narrowly ahead of XGBoost (.829) and Logistic Regression (.821); SVM is consistently the weakest model (mean .784) and shows the largest gaps on individual conditions, trailing NB by 12 points on both bipolar disorder (.79 vs.\ .91) and suicidal ideation (.80 vs.\ .92).
 
 \subsection{PLM Performance}
 
@@ -967,19 +967,19 @@ not listed separately.
 \cmidrule(lr){2-3}
  & Classical & PLM \\
 \midrule
-ADHD & .62 & .64 \\
-Anxiety & .61 & .71 \\
-Autism & .64 & .67 \\
-Bipolar & .62 & .63 \\
+ADHD & .85 & .64 \\
+Anxiety & .87 & .71 \\
+Autism & .85 & .67 \\
+Bipolar & .91 & .63 \\
 BPD & .68 & .55 \\
-Depression & .60 & .59 \\
-Eating dis. & .78 & --- \\
-OCD & .62 & .60 \\
-Panic & .74 & .71 \\
-PTSD & .64 & .47 \\
-Schizophrenia & .65 & --- \\
-Sleep dis. & .62 & .74 \\
-Suicidal & .64 & .65 \\
+Depression & .87 & .59 \\
+Eating dis. & .91 & --- \\
+OCD & .81 & .60 \\
+Panic & .85 & .71 \\
+PTSD & .89 & .47 \\
+Schizophrenia & .61 & --- \\
+Sleep dis. & .86 & .74 \\
+Suicidal & .92 & .65 \\
 \bottomrule
 \end{tabular}
 \caption{Summary of best F1 scores per condition on CARMA (Reddit). Full results in Appendix Tables~\ref{tab:results_classical_full} and~\ref{tab:results_plm_full}.}
