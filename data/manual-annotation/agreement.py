@@ -12,12 +12,12 @@ Outputs:
 import pandas as pd
 from sklearn.metrics import cohen_kappa_score, confusion_matrix
 
-FADY_PATH = "data/manual-annotation/reddit-sample-fady.csv"
-NOUR_PATH  = "data/manual-annotation/reddit-sample-nour.csv"
+FADY_PATH = "data/manual-annotation/fady-v2.csv"
+NOUR_PATH  = "data/manual-annotation/nour-v2.csv"
 QWEN_PATH  = "data/manual-annotation/reddit-sample-qwen.csv"
 JAIS_PATH  = "data/manual-annotation/reddit-sample-jais.csv"
 
-LABELS = ["TP", "FP", "NA"]
+LABELS = ["TP", "FP"]
 VALID  = set(LABELS)
 
 
