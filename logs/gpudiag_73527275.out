@@ -1,0 +1,7 @@
+Node: gpu024
+Tesla V100-PCIE-16GB, 575.57.08, 16384 MiB
+CUDA_VISIBLE_DEVICES=0
+--- torch check ---
+torch: 2.6.0+cu124 cuda build: 12.4
+cuda available: True
+tensor on gpu OK: tensor([0.], device='cuda:0')

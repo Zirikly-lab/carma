@@ -1,0 +1,14 @@
+Node: gpu027
+GPUs: Tesla V100-PCIE-16GB, 16384 MiB
+Fine-tuning model: camelbert
+Device: cpu
+Loading preprocessed posts …
+Loading split manifest …
+Aggregating posts per user …
+  7,467 users with text, 13 conditions
+
+==================================================
+Model: camelbert  Condition: adhd
+
+  adhd: 643 pos | train=1156 test=130
+    epoch 1: loss=0.6385  F1=0.682  Acc=0.577

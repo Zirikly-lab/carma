@@ -1,0 +1,18 @@
+Loading weights:   0%|          | 0/197 [00:00<?, ?it/s]Loading weights:  14%|█▍        | 28/197 [00:00<00:00, 247.41it/s]Loading weights:  27%|██▋       | 53/197 [00:00<00:00, 148.26it/s]Loading weights:  36%|███▌      | 71/197 [00:00<00:01, 122.38it/s]Loading weights:  44%|████▍     | 87/197 [00:00<00:00, 128.83it/s]Loading weights:  52%|█████▏    | 102/197 [00:00<00:00, 121.71it/s]Loading weights:  58%|█████▊    | 115/197 [00:00<00:00, 94.88it/s] Loading weights:  71%|███████   | 139/197 [00:01<00:00, 111.36it/s]Loading weights:  78%|███████▊  | 154/197 [00:01<00:00, 112.38it/s]Loading weights:  87%|████████▋ | 172/197 [00:01<00:00, 104.57it/s]Loading weights:  94%|█████████▍| 186/197 [00:01<00:00, 108.34it/s]Loading weights: 100%|██████████| 197/197 [00:01<00:00, 122.85it/s]
+[transformers] [1mBertForSequenceClassification LOAD REPORT[0m from: aubmindlab/bert-base-arabertv02-twitter
+Key                                        | Status     | 
+-------------------------------------------+------------+-
+cls.predictions.bias                       | UNEXPECTED | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED | 
+cls.predictions.transform.dense.bias       | UNEXPECTED | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED | 
+cls.predictions.transform.dense.weight     | UNEXPECTED | 
+bert.pooler.dense.bias                     | MISSING    | 
+bert.pooler.dense.weight                   | MISSING    | 
+classifier.weight                          | MISSING    | 
+classifier.bias                            | MISSING    | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+[2026-07-27T16:54:56.832] error: *** JOB 73527213 ON gpu024 CANCELLED AT 2026-07-27T16:54:56 DUE to SIGNAL Terminated ***

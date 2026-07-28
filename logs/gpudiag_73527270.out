@@ -1,0 +1,7 @@
+Node: gpu024
+Tesla V100-PCIE-16GB, 575.57.08, 16384 MiB
+CUDA_VISIBLE_DEVICES=0
+--- torch check ---
+torch: 2.11.0+cu130 cuda build: 13.0
+cuda available: False
+ERROR: RuntimeError('The NVIDIA driver on your system is too old (found version 12090). Please update your GPU driver by downloading and installing a new version from the URL: http://www.nvidia.com/Download/index.aspx Alternatively, go to: https://pytorch.org to install a PyTorch version that has been compiled with your version of the CUDA driver.')

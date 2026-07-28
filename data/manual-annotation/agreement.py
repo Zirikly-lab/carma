@@ -27,7 +27,7 @@ def load_data():
     qwen = pd.read_csv(QWEN_PATH,  keep_default_na=False)
     jais = pd.read_csv(JAIS_PATH,  keep_default_na=False)
 
-    df = fady[["id", "diagnosis", "Label"]].rename(columns={"Label": "fady"})
+    df = fady[["id", "diagnosis", "fad_label"]].rename(columns={"Label": "fady"})
     df = df.merge(nour[["id", "nour_label"]].rename(columns={"nour_label": "nour"}), on="id")
     df = df.merge(qwen[["id", "annotation"]].rename(columns={"annotation": "qwen"}), on="id")
     df = df.merge(jais[["id", "annotation"]].rename(columns={"annotation": "jais"}), on="id")

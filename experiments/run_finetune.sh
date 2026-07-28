@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=carma-finetune
-#SBATCH --partition=superChip
-#SBATCH --gres=gpu:gh200:1
+#SBATCH --partition=gpu
+#SBATCH --gres=gpu:v100:1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=128G
 #SBATCH --time=12:00:00
@@ -12,7 +12,7 @@ set -e
 
 cd /SEAS/home/g21775526/code/carma
 export PYTHONNOUSERSITE=1
-PYTHON=/SEAS/home/g21775526/miniforge3/envs/carma-gh200/bin/python
+PYTHON=/gpfs/automountdir/gpfs/homes/SEAS/home/g21775526/code/carma/.venv/bin/python
 
 mkdir -p logs results
 

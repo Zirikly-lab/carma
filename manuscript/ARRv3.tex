@@ -73,7 +73,7 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-Mental health has emerged as a critical global issue, yet Arabic NLP resources for mental health research remain scarce. We introduce \textbf{CARMA}, a large-scale corpus from Reddit (8,487 users, \textbf{\textasciitilde1M} posts), covering users who have self-reported diagnoses of mental health conditions. The high quality corpus targets 12 conditions and a control group.We collect data using a high-precision, pattern-based extraction pipeline validated
+Mental health has emerged as a critical global issue, yet Arabic NLP resources for mental health research remain scarce. We introduce \textbf{CARMA}, a large-scale corpus from Reddit (8,487 users, \textbf{\textasciitilde1M} posts), covering users who have self-reported diagnoses of mental health conditions. The high quality corpus targets 13 conditions and a control group.We collect data using a high-precision, pattern-based extraction pipeline validated
 through manual human annotation that combines self-disclosure phrases with condition-specific keywords across four 
 Arabic dialect groups (Gulf, Egyptian, Levantine, and Modern Standard Arabic) to identify posts containing genuine diagnostic self-reports. We employ an author-level approach that retrieves complete posting histories including relevant meta data (subreddit, time of creation, interaction stats) to enable longitudinal analysis. We benchmark the performance of current detection models and leverage Large Language Models to establish baselines for Arabic mental health classification. \end{abstract}
 
@@ -102,21 +102,21 @@ health corpus collected from Reddit. The corpus follows the self-reported
 diagnosis paradigm: we develop a dialect-aware, pattern-based extraction pipeline that identifies Arabic diagnosis disclosures across four major dialect groups (Egyptian, MSA, KSA, Levantine). We adopt an author-level collection strategy, retrieving the complete posting histories of
 identified users to support longitudinal analysis of linguistic patterns beyond the initial disclosure posts and including further metadata about the post.
 
-The corpus targets 12 conditions and a control group(Table~\ref{tab:arabic_datasets}).
+The corpus targets 13 conditions and a control group(Table~\ref{tab:arabic_datasets}).
 
 %Three conditions, Avoidant Personality Disorder, Narcissistic Personality Disorder, and Schizotypal Personality Disorder, yielded insufficient confirmed users and are excluded from downstream analysis, leaving 18 conditions for evaluation.
 
 Our contributions are as follows:
 \begin{enumerate}
     \item We introduce \textbf{CARMA}, a large-scale Arabic mental health corpus
-    collected from Reddit, targeting 12 conditions across ten diagnostic categories.
+    collected from Reddit, targeting 13 conditions across ten diagnostic categories.
     %of which 18 yield sufficient data for analysis.
 
     \item We develop the first high precision, dialect aware, automatic pattern-based extraction pipeline to identify self disclosure in Arabic.
 
-    \item We validate the automatic extraction pipeline through manual annotation by two
-    native Arabic-speaking annotators, with a supplementary exploratory LLM-as-Judge
-    analysis reported in Appendix~\ref{app:llm_judge}.
+    \item We validate the automatic extraction pipeline through manual annotation by two native Arabic-speaking annotators.
+    % , with a supplementary exploratory LLM-as-Judge
+    % analysis reported in Appendix~\ref{app:llm_judge}.
 
     \item We provide a comprehensive analysis of corpus characteristics and
     baseline model performance, offering insights into the challenges of mental
@@ -131,7 +131,7 @@ Our contributions are as follows:
 
 \subsection{Mental Health Detection from Social Media}
 \label{subsec:related_social_media}
-
+%TODO: cite mindset
 Research on detecting mental health conditions from social media has grown
 substantially over the past decade. Early work by \citet{de2013predicting}
 demonstrated that linguistic and behavioral signals on Twitter can be used to
@@ -247,7 +247,7 @@ all three of these limitations.
 \subsection{Diagnosed Dataset}
 
 We collect data from Reddit using pre-downloaded JSONL archives from Arctic Shift\footnote{\url{https://github.com/ArthurHeitmann/arctic_shift}} (Pushshift format), containing posts and comments from Arabic-speaking subreddits\footnote{We obtained an excempt IRB approval for this study from our institution, exempt under DHHS regulatory category 4. }. Reddit offers longer, more detailed self-reports that are well-suited to the self-reported diagnosis paradigm. To the best of our knowledge, there are no dedicated Arabic-language mental health subreddits comparable to those in English (e.g., r/depression, r/SuicideWatch). Consequently, our dataset is derived entirely from general regional subreddits (e.g., r/saudiarabia, r/Egypt, r/jordan), from which we extract mental-health-relevant content.
-
+%TODO: add more detail and support from literature to support self reported diagnosis methodology,
 We use a curated list of condition keywords (e.g., \foreignlanguage{arabic}{اكتئاب حاد}, "Severe Depression") and diagnosis phrases (e.g., \foreignlanguage{arabic}{تم تشخيصي بـ}, "I was diagnosed with"), checking whether they co-occur within a 40-character window (measured at the Unicode character level). See Appendix~\ref{app:keywords} and Appendix~\ref{app:phrases} for a detailed pattern description. To enhance inclusivity and robustness, the phrase list incorporates variations across Arabic dialects, including Modern Standard Arabic, Egyptian, and Levantine, along with frequent spellings and misspellings to account for the diverse posting habits of social media users. Condition keywords name each target condition in text, covering formal clinical terms, colloquial Arabic labels, and English terms.
 
 \subsection{Preprocessing}
@@ -255,7 +255,7 @@ We use a curated list of condition keywords (e.g., \foreignlanguage{arabic}{اك
 We apply two filtering steps to the collected post histories. First, we remove all posts containing mental health-related content (self-disclosures, condition keywords, and medication mentions) to prevent models from relying on explicit diagnostic markers when learning to classify users. This design encourages models to learn more subtle linguistic and behavioral signals rather than trivial keyword-based cues, aligning with prior work in mental health NLP \cite{cohan-etal-2018-smhd}. Second, we filter out non-Arabic content to ensure linguistic consistency across the corpus. In addition, we remove posts with less than 10 words, including posts marked as [removed] by the reddit API.\footnote{Arctic Shift API allows users to submit requests to remove their posts}
 
 \subsection{Control Dataset}
-
+%TODO: update with real number of control users
 We further construct a control dataset in a similar manner by scraping entire public user post histories from general Arabic-speaking subreddits (e.g., r/SaudiArabia) for candidate control users. Control users are subject to strict exclusion criteria: we immediately discard a candidate if they have ever posted about a mental health-related issue on the platform. For this filtration, we use the same pattern developed to identify diagnosed users, scanning for matching phrases, medication keywords, or other mental health-related terminology. See Appendix~\ref{app:phrases} for more detail. Such stringent exclusion criteria are inspired by previous literature \cite{cohan-etal-2018-smhd} to minimize the risk of including affected users in the control group.
 
 
@@ -265,63 +265,16 @@ We further construct a control dataset in a similar manner by scraping entire pu
 
 \subsection{Human Annotation}
 \label{subsec:human_annotation}
-
+%TODO: put kappa in context, maybe citing similar studies' kappa
 To assess the precision of the pipeline and validate the annotation
 scheme, two native Arabic-speaking annotators independently labeled a
 stratified sample of 260 posts from CARMA under a binary scheme:
 \texttt{TP} (a genuine first-person self-disclosure of a mental health
-diagnosis — equivalent to \texttt{<genuine>} in the exploratory
-LLM-as-Judge analysis, Appendix~\ref{app:llm_judge}) or \texttt{FP} (a clear mismatch —
-sarcasm, third-person reference, figurative use, or negation —
-equivalent to \texttt{<not\_confirmed>}). We additionally ran two LLMs
-as independent checks on the same 260 posts using the same scheme:
-Qwen2-7B-Instruct \cite{qwen2025qwen25technicalreport} and
-Jais-2-8B-Chat \cite{jais2_2025}, both in 4-bit quantisation.
-Table~\ref{tab:iaa_manual} summarises all pairwise agreement;
-Table~\ref{tab:iaa_manual_perlabel} breaks it down by label.
+diagnosis) or \texttt{FP} (a clear mismatch
+sarcasm, third-person reference, figurative use, or negation). The two human annotators achieve substantial agreement ($\kappa = 0.641$,
+85.8\%). 
 
-The two human annotators achieve substantial agreement ($\kappa = 0.641$,
-85.8\%). All four human-versus-LLM pairs fall in the slight range
-($\kappa = 0.115$--$0.182$), driven by both LLMs over-predicting TP
-(\texttt{<genuine>}) relative to the human annotators. Jais shows a
-modest advantage over Qwen on FP (F1 32.7 vs.\ 25.3 against Fady; 33.0
-vs.\ 24.3 against Nour), benefiting from its Arabic-specialised
-pre-training. Notably, the two LLMs agree with each other
-($\kappa = 0.237$, 82.8\%) more than either agrees with a human
-annotator, suggesting the two LLMs share some systematic bias in how
-they diverge from human judgments rather than making fully
-independent errors. All four annotators agree on 59.0\% of posts,
-almost entirely on TP.
-
-\begin{table}[h]
-\centering
-\small
-\begin{tabular}{lccc}
-\toprule
-\textbf{Pair} & $n$ & \textbf{\% Agree} & $\kappa$ \\
-\midrule
-Fady vs.\ Nour (human--human) & 254 & 85.8 & \textbf{0.641} \\
-\midrule
-Fady vs.\ Qwen                & 243 & 70.8 & 0.115 \\
-Fady vs.\ Jais                & 245 & 69.8 & 0.159 \\
-Nour vs.\ Qwen                & 239 & 76.6 & 0.119 \\
-Nour vs.\ Jais                & 243 & 74.9 & 0.182 \\
-\midrule
-Qwen vs.\ Jais (LLM--LLM)     & 233 & 82.8 & 0.237 \\
-\midrule
-All four agree                 & 229 & 59.0 & ---   \\
-\bottomrule
-\end{tabular}
-\caption{Pairwise agreement on the 260-post binary annotation
-(TP / FP, equivalent to \texttt{<genuine>} / \texttt{<not\_confirmed>}).
-Qwen = Qwen2-7B-Instruct; Jais = Jais-2-8B-Chat
-(both 4-bit). $\kappa$ follows \citet{landis1977measurement};
-rows with invalid labels excluded per pair (Fady: 1 invalid;
-Nour: 5 invalid; Qwen: 15 NA, 1 PARSE\_FAIL;
-Jais: 12 NA, 2 PARSE\_FAIL).}
-\label{tab:iaa_manual}
-\end{table}
-
+%TODO: we might need this table, since we're ignoring LLMs as annotators completely, which collapses it to just two humans. Change to annotator 1 and two, no people's names mentioned
 \begin{table}[h]
 \centering
 \small
@@ -341,22 +294,15 @@ computed symmetrically between the two raters.}
 \label{tab:iaa_manual_perlabel}
 \end{table}
 
-As a supplementary check, we also explored an LLM-as-Judge ensemble as
-an alternative, fully automated way of confirming candidate posts.
-This analysis is exploratory: it was not used to construct the final
-corpus, which is filtered solely by the pattern-based extraction
-pipeline described in §\ref{subsec:data_source}. Full details,
-including the judge models, prompting setup, and inter-model agreement
-results, are reported in Appendix~\ref{app:llm_judge}.
-
 \section{Corpus Statistics}
 \label{sec:corpus}
 
 \subsection{Overview}
 \label{subsec:corpus_overview}
-The resulting corpus comprises 3,080 unique users. Although the pipeline targets 12 conditions, some conditions yielded insufficient confirmed users and are excluded from analysis. Table~\ref{tab:corpus_summary} presents the per-condition user distribution.
+%TODO: update with final numbers, consistent throught the paper
+The resulting corpus comprises 3,080 unique users. Although the pipeline targets 13 conditions, some conditions yielded insufficient confirmed users and are excluded from analysis. Table~\ref{tab:corpus_summary} presents the per-condition user distribution.
 
-
+%TODO: update stats as per final benchmark dataset splits. ensure consistency thorught the paper. exclude fewr sample conditions.
 \begin{table}[h]
 \centering
 \small
@@ -405,9 +351,7 @@ Egyptian Arabic is the dominant dialect in CARMA (55.75\%), with Egypt as the pr
 
 \begin{figure}[h]
     \centering
-    % TODO: Replace with Reddit-only dialect distribution figure
     \includegraphics[width=\linewidth]{latex/figures/fig_dialect_overall.png}
-    % \fbox{\parbox{\linewidth}{\centering\vspace{1cm}[Figure placeholder: Arabic dialect distribution in CARMA (Reddit)]\vspace{1cm}}}
     \caption{Arabic Dialect Distribution in CARMA}
     \label{fig:dialect_dist}
 \end{figure}
@@ -473,17 +417,6 @@ For fine-tuning, we use a learning rate of 2e-5, batch size of 16, and train for
 We evaluate all models using four standard metrics: F1-score, Accuracy, Precision, and Recall. F1-score serves as our primary metric as it balances precision and recall, which is important given the class imbalance across conditions. All metrics are computed on the held-out test set.
 
 
-
-% ============================================================
-% §7  RESULTS AND ANALYSIS  (~0.75 page)
-% STATUS: MISSING : depends on experiments being run.
-%
-% For a resource paper, the results section should:
-%   (1) Present per-condition classification results table
-%   (2) Discuss overall trends (which conditions are easier
-%       to detect, which are harder)
-% ============================================================
-
 \section{Results and Discussion}
 \label{sec:results}
 
@@ -547,303 +480,6 @@ Tables \ref{tab:results_classical_full} and \ref{tab:results_plm_full} show the 
 
 \input{results_classical.tex}
 \input{results_plm.tex}
-
-%\section{Example Appendix}
-%\label{sec:appendix}
-%\appendix
-
-
-
-%\section{Medication Lexicon}
-%\label{app:medications}
-
-%The pipeline detects psychiatric medication mentions using a lexicon of over 300 terms. The lexicon covers:
-
-%\begin{itemize}
-%    \item \textbf{Arabic transliterations} with both hamza
-%    (\foreignlanguage{arabic}{أ}) and plain alef
-%    (\foreignlanguage{arabic}{ا}) variants (e.g.,
-%    \foreignlanguage{arabic}{إسيتالوبرام/اسيتالوبرام})
-%    \item \textbf{English generic names} (e.g., sertraline,
-%    fluoxetine, quetiapine)
-%    \item \textbf{Brand names} (e.g., Prozac, Zoloft, Seroquel,
-%    Cipralex)
-%    \item \textbf{Colloquial terms}
-%    (e.g., \foreignlanguage
-%    \foreignlanguage{arabic}{مضادات الاكتئاب}
-%    [\textit{antidepressants}])
-%\end{itemize}
-
-%English terms are matched using word-boundary regex to prevent false positives (e.g., \textit{add} inside \textit{added}), while Arabic terms use substring matching since the \texttt{\textbackslash b} word boundary does not apply to Arabic script.
-
-%\section{Comorbidity Analysis}
-%\label{app:comorbidity}
-
-%The pipeline includes a post-processing module that merges all
-%per-condition results to identify comorbid presentations. For each
-%unique post or comment, the module lists all matched conditions and
-%produces three outputs: (1) a unified dataset with a
-%\texttt{Conditions} column listing every matched condition per post
-%and a \texttt{Condition\_Count} field; (2) an $N \times N$ condition
-%co-occurrence matrix showing how many posts matched each pair of
-%conditions simultaneously; and (3) a per-condition summary with
-%overlap statistics. Users can set a minimum condition threshold
-%(e.g., $\geq 2$) to isolate true comorbidity cases.
-
-\section{Exploratory LLM-as-Judge Analysis}
-\label{app:llm_judge}
-
-This appendix reports an exploratory analysis that was \emph{not} used
-to construct the final CARMA corpus. The corpus is filtered solely by
-the pattern-based extraction pipeline described in
-§\ref{subsec:data_source}, validated by the manual human annotation of
-§\ref{subsec:human_annotation}. We include this analysis for
-transparency and as a point of comparison, since it was considered as
-an alternative, fully automated filtering strategy before being set
-aside in favour of the pattern-based pipeline.
-
-\subsection*{Motivation}
-
-The \textit{LLM-as-Judge} paradigm proposes using large language models
-as automated evaluators for text generation and annotation tasks.
-\citet{zheng2023judging} show that strong language models can
-approximate human judgments in several evaluation settings by ranking
-model outputs according to task-specific criteria, and
-\citet{gilardi2023chatgpt} find that ChatGPT can outperform crowd
-workers on several annotation tasks, including relevance, stance, and
-frame detection. In the mental health domain, large language models
-have been applied to classification and reasoning over online mental
-health discourse \cite{xu2024mental}. However, the reliability of
-LLM-based judging remains an active area of investigation:
-\citet{fu-liu-2025-reliable} show that agreement between LLM judges can
-vary substantially across languages, with particularly low consistency
-in low-resource settings such as Arabic. Motivated by this literature,
-we evaluated whether an ensemble of independent LLM judges could serve
-as an automated substitute for the pattern-based pipeline.
-
-\subsection*{Framework}
-
-To verify whether candidate posts contain genuine first-person mental
-health disclosures, we evaluated an LLM-as-Judge framework
-\cite{zheng2023judging} using three large language models: GPT-4.1
-\footnote{\url{https://openai.com/api/}} \cite{achiam2023gpt},
-Qwen3-235B-A22B \cite{qwen3technicalreport}, and Jais-2-8B-Chat
-\cite{jais2_2025}. Each model is prompted independently with the same
-structured prompt (Appendix~\ref{app:prompt}) to classify each post as
-either \texttt{<genuine>} (a real, first-person self-disclosure of the
-target condition) or \texttt{<not\_confirmed>} (a false positive). The
-prompt instructs each model to act as a board-certified psychiatrist
-fluent in Arabic and its dialects, and to classify strictly based on
-what the author explicitly states, without inferring or assuming a
-diagnosis.
-
-GPT-4.1 provides strong general-purpose multilingual reasoning
-\cite{zhong2024agieval, moell2024comparing}; Qwen3-235B-A22B offers
-large-scale open-weight performance with strong Arabic coverage
-\cite{qwen3technicalreport}; and Jais-2-8B-Chat is a purpose-built
-Arabic language model trained on Arabic and English data with a custom
-Arabic-centric vocabulary, providing dialect-sensitive judgment across
-Modern Standard Arabic and regional varieties \cite{jais2_2025}. Using
-multiple judges mitigates individual model biases and allows us to
-measure labeling consistency across systems \cite{zheng2023judging}.
-For this exploratory comparison, a post would have been retained only
-when all three judges unanimously agreed on \texttt{<genuine>},
-prioritising precision over recall.
-
-\subsection*{Agreement Results}
-
-Table~\ref{tab:iaa} reports inter-model agreement among the three LLM
-judges on CARMA. GPT-4.1 and Qwen3-235B achieve the \textbf{highest}
-pairwise agreement ($\kappa = 0.652$), indicating substantial alignment
-between the two larger models. Jais-2-8B-Chat shows consistently lower
-agreement with both peers, which we attribute to its smaller model
-capacity \cite{wei2022emergent} and higher parse failure rate. Fleiss'
-$\kappa$ across all three models is 0.427, reflecting moderate
-agreement overall, a level consistent with the inherent difficulty of
-distinguishing genuine self-disclosures from figurative or sarcastic
-mentions in social media text.
-
-\begin{table}[h]
-\centering
-\small
-\begin{tabular}{lc}
-\toprule
-\textbf{Model Pair / Metric} & \textbf{CARMA} \\
-\midrule
-GPT-4.1 vs.\ Qwen3-235B       & \textbf{0.652} \\
-GPT-4.1 vs.\ Jais-2-8B        & 0.299          \\
-Qwen3-235B vs.\ Jais-2-8B     & 0.363          \\
-\midrule
-Mean pairwise $\kappa$         & 0.438          \\
-Fleiss' $\kappa$ (all three)   & 0.427          \\
-\midrule
-Overall agreement (\%)         & 71.4\%         \\
-\bottomrule
-\end{tabular}
-\caption{Inter-model agreement among the three LLM judges on
-a stratified 100-post sample from CARMA.
-$\kappa$ values follow \citet{landis1977measurement}.}
-\label{tab:iaa}
-\end{table}
-
-Table~\ref{tab:iaa_human} compares each LLM judge against two human
-annotators (Ann-1, Ann-2) on a separate stratified 100-post sample. The
-human-to-human agreement (first row, $\kappa = 0.756$) serves as a
-reference point; the same two annotators achieve a similarly
-substantial $\kappa = 0.641$ on the independent 260-post TP/FP
-validation reported in §\ref{subsec:human_annotation}. The LLM
-Majority vote generally achieves higher or comparable $\kappa$ with
-both annotators relative to any individual model, reaching up to
-$\kappa = 0.590$ (Ann-2), indicating that aggregating three judges
-mitigates the idiosyncratic errors of any single model. LLM Unanimous
-agreement — the stricter criterion that would have been used for
-corpus filtering — aligns \emph{less} well with human judgments than
-the majority vote ($\kappa = 0.305$ and $0.269$ vs.\ Ann-1 and Ann-2,
-respectively). Combined with the modest inter-judge agreement in
-Table~\ref{tab:iaa}, this indicates that an LLM-as-Judge ensemble would
-have traded a large amount of recall for a precision gain that is not
-clearly better than the pattern-based pipeline's, which is why it was
-not adopted for the final corpus. Full details on how pairwise
-$\kappa$ values and sample sizes are computed are provided in
-Appendix~\ref{app:agreement_details}.
-
-\begin{table}[h]
-\centering
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lc}
-\toprule
-\textbf{Annotator Pair} & \textbf{CARMA} \\
-\midrule
-Ann-1 vs.\ Ann-2          & 0.756 \\
-\midrule
-Ann-1 vs.\ GPT-4.1        & 0.433 \\
-Ann-1 vs.\ Qwen3-235B     & 0.563 \\
-Ann-1 vs.\ Jais-2-8B      & 0.273 \\
-Ann-1 vs.\ LLM Majority   & 0.553 \\
-Ann-1 vs.\ LLM Unanimous  & 0.305 \\
-\midrule
-Ann-2 vs.\ GPT-4.1        & 0.414 \\
-Ann-2 vs.\ Qwen3-235B     & 0.541 \\
-Ann-2 vs.\ Jais-2-8B      & 0.212 \\
-Ann-2 vs.\ LLM Majority   & 0.590 \\
-Ann-2 vs.\ LLM Unanimous  & 0.269 \\
-\midrule
-Mean pairwise $\kappa$      & 0.415 \\
-Fleiss' $\kappa$ (all five) & 0.447 \\
-\midrule
-Overall agreement (\%)      & 67.9\% \\
-\bottomrule
-\end{tabular}}
-\caption{Pairwise Cohen's $\kappa$ between human annotators (Ann-1,
-Ann-2) and LLM judges on a stratified 100-post sample from CARMA.
-LLM Majority = majority vote across all three models; LLM Unanimous =
-agreement across all three judges. Neither ensemble metric was used to
-filter the final CARMA corpus (see §\ref{app:llm_judge} above).
-$\kappa$ values follow \citet{landis1977measurement}.}
-\label{tab:iaa_human}
-\end{table}
-
-\section{LLM Classification Prompt}
-\label{app:prompt}
-
-We use a two-part prompt structure for LLM-based classification: a \texttt{SYSTEM\_PROMPT} that defines the classifier's role, rules, and output schema, and a \texttt{USER\_TEMPLATE} that instantiates each example with the post, bio, and target condition.
-
-\subsection*{System Prompt}
-
-\begin{tcolorbox}[
-  breakable,
-  enhanced,
-  colback=gray!5,
-  colframe=gray!50,
-  fontupper=\small\ttfamily,
-  coltitle=black,
-  attach boxed title to top left={yshift=-2mm, xshift=4mm},
-  boxed title style={colback=gray!20, colframe=gray!50}
-]
-You are a board-certified psychiatrist and clinical researcher specializing in mental health diagnosis. Your native language is Arabic, and you are fluent in English. You understand Arabic dialects, including Gulf, Egyptian, Levantine, and Modern Standard Arabic (MSA), as well as slang, religious expressions, sarcasm, figurative language, and informal social media communication. You are familiar with the cultural and social context of mental health in Arab societies.
-
-Your task is text classification only. Classify based on what the author explicitly states, do not infer or assume a diagnosis.
-
-\medskip\textbf{TASK:}\\
-The post was collected using self-disclosure keyword phrases for \{condition\} (\{condition\_ar\}). Determine whether the post is:
-\begin{itemize}
-  \item \texttt{<genuine>}: a real, first-person self-disclosure of \{condition\}, OR
-  \item \texttt{<not\_confirmed>}: NOT a real self-disclosure (false positive).
-\end{itemize}
-
-\medskip\textbf{DEFAULT RULE:}\\
-When in doubt, label \texttt{<not\_confirmed>}.
-
-\medskip\hrule\medskip
-
-\textbf{REASON TAGS} (list ALL that apply)
-
-\textit{Genuine evidence:}
-\begin{itemize}
-  \item \texttt{explicit\_self\_disclosure}: Clear first-person statement of having the condition
-  \item \texttt{treatment\_or\_medication}: Mentions own medication, therapy, doctor visits, or treatment history
-  \item \texttt{symptom\_description\_self}: Describes personal symptoms or lived experience
-  \item \texttt{help\_seeking\_self}: Asking for help, resources, or support for their own condition
-\end{itemize}
-
-\textit{Not genuine evidence:}
-\begin{itemize}
-  \item \texttt{metaphor\_or\_exaggeration}: Condition used figuratively or dramatically
-  \item \texttt{humor\_or\_sarcasm}: Used jokingly or as a punchline
-  \item \texttt{third\_person\_reference}: Talking about someone else's condition
-  \item \texttt{negation\_or\_denial}: Explicitly states they do NOT have the condition
-  \item \texttt{self\_questioning\_or\_uncertain}: Suspicion without confirmed diagnosis
-  \item \texttt{professional\_or\_organizational\_account}: Doctor, clinic, media, or awareness page
-  \item \texttt{community\_or\_repost\_account}: Account reposts followers' messages
-  \item \texttt{news\_or\_public\_content}: News, educational, or awareness content
-\end{itemize}
-
-\medskip\hrule\medskip
-
-\textbf{CLASSIFICATION RULES}
-
-Label \texttt{<genuine>} if the author sincerely states they have \{condition\}, describes their personal experience, seeks help or treatment for their own \{condition\}, or discusses their own medication, symptoms, or diagnosis history.
-
-
-Label \texttt{<not\_confirmed>} if ANY of the following apply: humor or sarcasm; figurative use; news or third-party reporting; professional or educational posts; community/repost accounts; roleplay or fiction; self-questioning without confirmed diagnosis; explicit negation; third-person discussion; stigmatizing usage; or a vague mention with no sincere self-disclosure intent.
-
-\medskip\hrule\medskip
-
-\textbf{USING THE BIO}
-
-Use BOTH the post and the bio together. A professional, organizational, media, or community bio strongly supports \texttt{<not\_confirmed>}, unless the post contains a clear first-person statement about the author's own diagnosis. A patient identity or direct address to a doctor or support organization supports \texttt{<genuine>}. Specific medications, symptoms, treatment history, or duration strongly support \texttt{<genuine>}.
-
-\medskip\hrule\medskip
-
-\textbf{OUTPUT FORMAT}\\
-Output ONLY the following two fields. No preamble, reasoning, or explanation.
-
-\medskip
-\texttt{Label: <genuine>} or \texttt{<not\_confirmed>}\\
-\texttt{Reasons: one or more tags, comma-separated}
-\end{tcolorbox}
-
-\subsection*{User Template}
-
-\begin{tcolorbox}[
-  breakable,
-  enhanced,
-  colback=gray!5,
-  colframe=gray!50,
-  fontupper=\small\ttfamily,
-  coltitle=black,
-  attach boxed title to top left={yshift=-2mm, xshift=4mm},
-  boxed title style={colback=gray!20, colframe=gray!50}
-]
-Post: \{post\}\\
-Bio: \{bio\}\\
-Condition: \{condition\} (\{condition\_ar\})
-
-\medskip
-Label:\\
-Reasons:
-\end{tcolorbox}
-
 
 \section{Condition Keyword Lists}
 \label{app:keywords}

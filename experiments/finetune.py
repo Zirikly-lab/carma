@@ -4,6 +4,9 @@ User-level binary classification with fine-tuned Arabic PLMs.
 
 For each condition, fine-tunes AraBERT-Twitter and CAMeLBERT.
 Each user's posts are concatenated and truncated to 512 tokens.
+Train/test users come from the shared split manifest built by
+experiments/data_prep.ipynb, so results are directly comparable to
+classical.py (same users, same split, same condition definitions).
 
 Usage:
   python experiments/finetune.py --model arabert [--condition depression]
@@ -12,75 +15,52 @@ Usage:
 
 import argparse
 import warnings
-import numpy as np
 import pandas as pd
 from pathlib import Path
 import torch
 from torch.utils.data import Dataset, DataLoader
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score
 
 warnings.filterwarnings("ignore")
 
-PREPROCESSED  = "data/posts/v1/reddit-preprocessed.csv"
-MAJORITY_VOTE = "data/metadata/majority-vote-reddit.csv"
-RANDOM_SEED   = 42
-TEST_SIZE     = 0.10
-MIN_USERS     = 30
-MAX_SEQ_LEN   = 512
-BATCH_SIZE    = 16
-EPOCHS        = 3
-LR            = 2e-5
+PREPROCESSED   = "data/posts/v1/reddit-preprocessed.csv"
+SPLIT_MANIFEST = "data/splits/condition_user_splits.csv"
+MAX_SEQ_LEN    = 512
+BATCH_SIZE     = 16
+EPOCHS         = 3
+LR             = 2e-5
 
 MODELS = {
     "arabert":   "aubmindlab/bert-base-arabertv02-twitter",
     "camelbert": "CAMeL-Lab/bert-base-arabic-camelbert-mix",
 }
 
-CONDITIONS = [
-    "depression", "anxiety", "adhd", "ocd", "sleep_disorder",
-    "autism", "panic", "bipolar", "ptsd", "bpd",
-    "suicidal", "schizophrenia", "eating_disorder",
-]
-
 
 # ---------------------------------------------------------------------------
-# Data loading (same re-labeling logic as classical.py)
+# Data loading
 # ---------------------------------------------------------------------------
 
 def load_user_texts():
     print("Loading preprocessed posts …")
     pre = pd.read_csv(PREPROCESSED, keep_default_na=False,
-                      usecols=["user_id", "class", "text"])
+                      usecols=["user_id", "text"])
     pre = pre[pre["text"].str.strip() != ""]
 
-    print("Loading majority-vote metadata …")
-    mv = pd.read_csv(MAJORITY_VOTE, keep_default_na=False)
-    author_diag = mv.groupby("author")["diagnosis"].first().reset_index()
-    author_diag.columns = ["user_id", "mv_diagnosis"]
+    print("Loading split manifest …")
+    manifest = pd.read_csv(SPLIT_MANIFEST, keep_default_na=False)
 
-    pre = pre.merge(author_diag, on="user_id", how="left")
-    pre["label"] = pre["mv_diagnosis"].fillna("").where(
-        pre["mv_diagnosis"].notna() & (pre["mv_diagnosis"] != ""),
-        other=pre["class"]
-    )
-
-    mv_users  = set(author_diag["user_id"])
-    ctrl_mask = pre["class"] == "control"
-    mv_mask   = pre["user_id"].isin(mv_users)
-    pre = pre[ctrl_mask | mv_mask].copy()
-    pre = pre[pre["label"].isin(CONDITIONS + ["control"])]
-
-    # Aggregate: all posts per user → one string (chronological order)
+    # Aggregate: all posts per user → one string (chronological order as stored)
     print("Aggregating posts per user …")
-    user_df = (
-        pre.groupby("user_id")
-           .agg(text=("text", lambda x: " ".join(x)), label=("label", "first"))
+    user_text = (
+        pre.groupby("user_id")["text"]
+           .apply(lambda x: " ".join(x))
            .reset_index()
     )
-    print(f"  {len(user_df)} users")
-    return user_df
+    manifest = manifest.merge(user_text, on="user_id", how="inner")
+    print(f"  {manifest['user_id'].nunique():,} users with text, "
+          f"{manifest['condition'].nunique()} conditions")
+    return manifest
 
 
 # ---------------------------------------------------------------------------
@@ -146,37 +126,25 @@ def evaluate_model(model, loader, device):
 # Per-condition experiment
 # ---------------------------------------------------------------------------
 
-def run_condition(condition, user_df, model_name, model_path, device):
-    pos = user_df[user_df["label"] == condition]
-    neg = user_df[user_df["label"] == "control"]
-
-    if len(pos) < MIN_USERS:
-        print(f"  SKIP {condition} (< {MIN_USERS} users)")
+def run_condition(condition, manifest, model_path, device):
+    df = manifest[manifest["condition"] == condition]
+    if df.empty:
+        print(f"  SKIP {condition} (not in split manifest)")
         return None
 
-    rng = np.random.default_rng(RANDOM_SEED)
-    n   = min(len(pos), len(neg))
-    pos = pos.sample(n, random_state=RANDOM_SEED)
-    neg = neg.sample(n, random_state=RANDOM_SEED)
+    train = df[df["split"] == "train"]
+    test  = df[df["split"] == "test"]
 
-    df = pd.concat([pos, neg])
-    df["y"] = (df["label"] == condition).astype(int)
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        df["text"], df["y"], test_size=TEST_SIZE,
-        stratify=df["y"], random_state=RANDOM_SEED
-    )
-
-    n_pos = y_train.sum() + y_test.sum()
-    print(f"\n  {condition}: {n_pos} pos | train={len(y_train)} test={len(y_test)}")
+    n_pos = df["y"].sum()
+    print(f"\n  {condition}: {n_pos} pos | train={len(train)} test={len(test)}")
 
     tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
     model     = AutoModelForSequenceClassification.from_pretrained(
         model_path, num_labels=2, trust_remote_code=True
     ).to(device)
 
-    train_ds = PostDataset(X_train, y_train, tokenizer)
-    test_ds  = PostDataset(X_test,  y_test,  tokenizer)
+    train_ds = PostDataset(train["text"], train["y"], tokenizer)
+    test_ds  = PostDataset(test["text"],  test["y"],  tokenizer)
     train_dl = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True,  num_workers=4)
     test_dl  = DataLoader(test_ds,  batch_size=BATCH_SIZE, shuffle=False, num_workers=4)
 
@@ -215,14 +183,14 @@ def main():
     if device.type == "cuda":
         print(f"GPU: {torch.cuda.get_device_name(0)}")
 
-    user_df = load_user_texts()
-    conditions = CONDITIONS if args.condition == "all" else [args.condition]
+    manifest = load_user_texts()
+    conditions = sorted(manifest["condition"].unique()) if args.condition == "all" else [args.condition]
 
     records = []
     for condition in conditions:
         print(f"\n{'='*50}")
         print(f"Model: {args.model}  Condition: {condition}")
-        metrics = run_condition(condition, user_df, args.model, model_path, device)
+        metrics = run_condition(condition, manifest, model_path, device)
         if metrics is None:
             continue
         metrics["condition"] = condition

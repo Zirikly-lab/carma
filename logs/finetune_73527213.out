@@ -1,0 +1,14 @@
+Node: gpu024
+GPUs: Tesla V100-PCIE-16GB, 16384 MiB
+Fine-tuning model: arabert
+Device: cpu
+Loading preprocessed posts …
+Loading split manifest …
+Aggregating posts per user …
+  7,467 users with text, 13 conditions
+
+==================================================
+Model: arabert  Condition: adhd
+
+  adhd: 643 pos | train=1156 test=130
+    epoch 1: loss=0.6392  F1=0.602  Acc=0.623
