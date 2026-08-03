@@ -23,7 +23,19 @@ echo "GPUs: $(nvidia-smi --query-gpu=name,memory.total --format=csv,noheader)"
 MODEL=${MODEL:-arabert}
 echo "Fine-tuning model: $MODEL"
 
+# USER_LEVEL is passed as --export USER_LEVEL=1 to aggregate posts per user
+# instead of the default post-level examples
+USER_LEVEL=${USER_LEVEL:-0}
+LEVEL_FLAG=()
+LEVEL=post
+if [ "$USER_LEVEL" = "1" ]; then
+    LEVEL_FLAG=(--user-level)
+    LEVEL=user
+fi
+echo "Level: $LEVEL"
+
 $PYTHON experiments/finetune.py \
     --model "$MODEL" \
     --condition all \
-    --output "results/finetune_${MODEL}.csv"
+    "${LEVEL_FLAG[@]}" \
+    --output "results/finetune_${MODEL}_${LEVEL}.csv"

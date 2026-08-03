@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 """
-Post-level binary classification with TF-IDF classifiers.
+Post-level or user-level binary classification with TF-IDF classifiers.
 
 For each condition, trains NB / LR / SVM / XGBoost on TF-IDF features.
-Each post inherits its author's label; train/test users come from the
-shared split manifest built by experiments/data_prep.ipynb, so results
-are directly comparable to finetune.py (same users, same split, same
-condition definitions).
+By default each post is its own example (post-level); with --user-level,
+each user's posts are concatenated into a single example instead, so
+results are directly comparable to finetune.py (same users, same split,
+same condition definitions). In both modes, control and diagnosed users
+are downsampled to equal counts within each split before building the
+dataset, so class balance is defined at the user level regardless of
+how many posts each user contributed.
 
 Data:
   data/posts/v1/reddit-preprocessed.csv   → post text, keyed by user_id
   data/splits/condition_user_splits.csv   → (condition, user_id, y, split)
 
 Usage:
-  python experiments/classical.py [--output results/classical.csv]
+  python experiments/classical.py [--output results/classical.csv] [--user-level]
 """
 
 import argparse
@@ -54,20 +57,36 @@ def load_data():
     return pre, manifest
 
 
+def aggregate_user_text(pre):
+    """Concatenate each user's posts into a single row of text."""
+    return pre.groupby("user_id")["text"].apply(lambda x: " ".join(x)).reset_index()
+
+
+def balance_users(df, seed):
+    """Downsample the majority class so control/diagnosed users are equal in count."""
+    counts = df["y"].value_counts()
+    if len(counts) < 2:
+        return df
+    n = counts.min()
+    parts = [g.sample(n=n, random_state=seed) for _, g in df.groupby("y")]
+    return pd.concat(parts).sample(frac=1, random_state=seed).reset_index(drop=True)
+
+
 # ---------------------------------------------------------------------------
 # Per-condition dataset builder
 # ---------------------------------------------------------------------------
 
-def build_condition_dataset(pre, manifest, condition):
+def build_condition_dataset(text_source, manifest, condition, seed):
     cond_manifest = manifest[manifest["condition"] == condition]
     if cond_manifest.empty:
         return None, None, None, None
 
-    # expand each (user, split, y) row to that user's posts
-    df = cond_manifest.merge(pre, on="user_id", how="inner")
+    train_users = balance_users(cond_manifest[cond_manifest["split"] == "train"], seed)
+    test_users  = balance_users(cond_manifest[cond_manifest["split"] == "test"], seed)
 
-    train = df[df["split"] == "train"]
-    test  = df[df["split"] == "test"]
+    # expand each (user, y) row to that user's text (post-level or user-level)
+    train = train_users.merge(text_source, on="user_id", how="inner")
+    test  = test_users.merge(text_source, on="user_id", how="inner")
 
     return train["text"], train["y"], test["text"], test["y"]
 
@@ -105,26 +124,34 @@ def evaluate(model_name, clf, vec, X_test, y_test):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output", default="results/classical.csv")
+    parser.add_argument("--output", default=None,
+                        help="Default: results/classical_<post|user>.csv, based on --user-level")
     parser.add_argument("--conditions", nargs="+", default=None,
                         help="Subset of conditions to run (default: all in the manifest)")
+    parser.add_argument("--user-level", action="store_true",
+                        help="Concatenate each user's posts into a single example "
+                             "(default: post-level, one example per post)")
     args = parser.parse_args()
 
-    Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+    level = "user" if args.user_level else "post"
+    output = args.output or f"results/classical_{level}.csv"
+    Path(output).parent.mkdir(parents=True, exist_ok=True)
 
     pre, manifest = load_data()
+    text_source = aggregate_user_text(pre) if args.user_level else pre[["user_id", "text"]]
     conditions = args.conditions or sorted(manifest["condition"].unique())
     records = []
 
     for condition in conditions:
-        X_train, y_train, X_test, y_test = build_condition_dataset(pre, manifest, condition)
+        X_train, y_train, X_test, y_test = build_condition_dataset(
+            text_source, manifest, condition, RANDOM_SEED)
         if X_train is None:
             print(f"  SKIP {condition} (not in split manifest)")
             continue
 
-        n_pos_users = manifest[(manifest["condition"] == condition) & (manifest["y"] == 1)]["user_id"].nunique()
-        print(f"\n{condition}: {n_pos_users} pos users, "
-              f"train={len(y_train)} posts, test={len(y_test)} posts")
+        print(f"\n{condition} ({level}-level): "
+              f"train={len(y_train)} ({y_train.sum()} pos), "
+              f"test={len(y_test)} ({y_test.sum()} pos)")
 
         vec = TfidfVectorizer(
             max_features=MAX_TFIDF_FEAT,
@@ -139,15 +166,16 @@ def main():
             clf.fit(X_tr, y_train)
             row = evaluate(model_name, clf, vec, X_test, y_test)
             row["condition"] = condition
+            row["level"] = level
             records.append(row)
             print(f"  {model_name}: F1={row['f1']:.3f}  "
                   f"Acc={row['accuracy']:.3f}  "
                   f"P={row['precision']:.3f}  R={row['recall']:.3f}")
 
     results = pd.DataFrame(records)[
-        ["condition", "model", "f1", "accuracy", "precision", "recall"]]
-    results.to_csv(args.output, index=False)
-    print(f"\nResults saved to {args.output}")
+        ["condition", "level", "model", "f1", "accuracy", "precision", "recall"]]
+    results.to_csv(output, index=False)
+    print(f"\nResults saved to {output}")
 
     # Summary: best F1 per condition
     print("\nBest F1 per condition:")

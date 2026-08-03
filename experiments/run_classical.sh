@@ -19,4 +19,15 @@ echo "CPUs: $(nproc)"
 
 pip install --quiet xgboost scikit-learn pandas
 
-python experiments/classical.py --output results/classical.csv
+# USER_LEVEL is passed as --export USER_LEVEL=1 to aggregate posts per user
+# instead of the default post-level examples
+USER_LEVEL=${USER_LEVEL:-0}
+LEVEL_FLAG=()
+LEVEL=post
+if [ "$USER_LEVEL" = "1" ]; then
+    LEVEL_FLAG=(--user-level)
+    LEVEL=user
+fi
+echo "Level: $LEVEL"
+
+python experiments/classical.py "${LEVEL_FLAG[@]}" --output "results/classical_${LEVEL}.csv"

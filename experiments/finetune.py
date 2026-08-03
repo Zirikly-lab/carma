@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
 """
-User-level binary classification with fine-tuned Arabic PLMs.
+Post-level or user-level binary classification with fine-tuned Arabic PLMs.
 
 For each condition, fine-tunes AraBERT-Twitter and CAMeLBERT.
-Each user's posts are concatenated and truncated to 512 tokens.
-Train/test users come from the shared split manifest built by
-experiments/data_prep.ipynb, so results are directly comparable to
-classical.py (same users, same split, same condition definitions).
+By default each post is its own example (post-level, truncated to 512
+tokens); with --user-level, each user's posts are concatenated into a
+single example (also truncated to 512 tokens) instead, so results are
+directly comparable to classical.py (same users, same split, same
+condition definitions). In both modes, control and diagnosed users are
+downsampled to equal counts within each split before building the
+dataset, so class balance is defined at the user level regardless of
+how many posts each user contributed.
 
 Usage:
-  python experiments/finetune.py --model arabert [--condition depression]
+  python experiments/finetune.py --model arabert [--condition depression] [--user-level]
   python experiments/finetune.py --model camelbert [--condition all]
 """
 
 import argparse
 import warnings
+from functools import partial
 import pandas as pd
 from pathlib import Path
 import torch
@@ -24,12 +29,13 @@ from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_sc
 
 warnings.filterwarnings("ignore")
 
-PREPROCESSED   = "data/posts/v1/reddit-preprocessed.csv"
-SPLIT_MANIFEST = "data/splits/condition_user_splits.csv"
+PREPROCESSED   = "../data/posts/v1/reddit-preprocessed.csv"
+SPLIT_MANIFEST = "../data/splits/condition_user_splits.csv"
 MAX_SEQ_LEN    = 512
 BATCH_SIZE     = 16
 EPOCHS         = 3
 LR             = 2e-5
+RANDOM_SEED    = 42
 
 MODELS = {
     "arabert":   "aubmindlab/bert-base-arabertv02-twitter",
@@ -41,7 +47,7 @@ MODELS = {
 # Data loading
 # ---------------------------------------------------------------------------
 
-def load_user_texts():
+def load_data():
     print("Loading preprocessed posts …")
     pre = pd.read_csv(PREPROCESSED, keep_default_na=False,
                       usecols=["user_id", "text"])
@@ -50,17 +56,25 @@ def load_user_texts():
     print("Loading split manifest …")
     manifest = pd.read_csv(SPLIT_MANIFEST, keep_default_na=False)
 
-    # Aggregate: all posts per user → one string (chronological order as stored)
-    print("Aggregating posts per user …")
-    user_text = (
-        pre.groupby("user_id")["text"]
-           .apply(lambda x: " ".join(x))
-           .reset_index()
-    )
-    manifest = manifest.merge(user_text, on="user_id", how="inner")
-    print(f"  {manifest['user_id'].nunique():,} users with text, "
+    print(f"  {pre['user_id'].nunique():,} users with posts, "
+          f"{manifest['user_id'].nunique():,} users in manifest, "
           f"{manifest['condition'].nunique()} conditions")
-    return manifest
+    return pre, manifest
+
+
+def aggregate_user_text(pre):
+    """Concatenate each user's posts into a single row of text (chronological order as stored)."""
+    return pre.groupby("user_id")["text"].apply(lambda x: " ".join(x)).reset_index()
+
+
+def balance_users(df, seed):
+    """Downsample the majority class so control/diagnosed users are equal in count."""
+    counts = df["y"].value_counts()
+    if len(counts) < 2:
+        return df
+    n = counts.min()
+    parts = [g.sample(n=n, random_state=seed) for _, g in df.groupby("y")]
+    return pd.concat(parts).sample(frac=1, random_state=seed).reset_index(drop=True)
 
 
 # ---------------------------------------------------------------------------
@@ -68,21 +82,32 @@ def load_user_texts():
 # ---------------------------------------------------------------------------
 
 class PostDataset(Dataset):
+    """Tokenizes lazily per-example; padding happens per-batch in collate_fn.
+
+    Eagerly tokenizing an entire split up front (as before) spikes memory
+    proportional to split size, which OOMs on post-level splits (100k+ rows)
+    under a constrained cgroup. Tokenizing one example at a time keeps peak
+    memory bounded by batch size regardless of split size or device.
+    """
     def __init__(self, texts, labels, tokenizer):
-        self.encodings = tokenizer(
-            list(texts),
-            truncation=True,
-            padding=True,
-            max_length=MAX_SEQ_LEN,
-            return_tensors="pt",
-        )
-        self.labels = torch.tensor(list(labels), dtype=torch.long)
+        self.texts = list(texts)
+        self.labels = list(labels)
+        self.tokenizer = tokenizer
 
     def __len__(self):
         return len(self.labels)
 
     def __getitem__(self, idx):
-        return {k: v[idx] for k, v in self.encodings.items()}, self.labels[idx]
+        encoding = self.tokenizer(
+            self.texts[idx], truncation=True, max_length=MAX_SEQ_LEN,
+        )
+        return encoding, self.labels[idx]
+
+
+def collate_batch(batch, tokenizer):
+    encodings, labels = zip(*batch)
+    padded = tokenizer.pad(list(encodings), return_tensors="pt")
+    return padded, torch.tensor(labels, dtype=torch.long)
 
 
 # ---------------------------------------------------------------------------
@@ -126,27 +151,34 @@ def evaluate_model(model, loader, device):
 # Per-condition experiment
 # ---------------------------------------------------------------------------
 
-def run_condition(condition, manifest, model_path, device):
-    df = manifest[manifest["condition"] == condition]
-    if df.empty:
+def run_condition(condition, manifest, text_source, model_path, device, seed, level):
+    cond_manifest = manifest[manifest["condition"] == condition]
+    if cond_manifest.empty:
         print(f"  SKIP {condition} (not in split manifest)")
         return None
 
-    train = df[df["split"] == "train"]
-    test  = df[df["split"] == "test"]
+    train_users = balance_users(cond_manifest[cond_manifest["split"] == "train"], seed)
+    test_users  = balance_users(cond_manifest[cond_manifest["split"] == "test"], seed)
 
-    n_pos = df["y"].sum()
-    print(f"\n  {condition}: {n_pos} pos | train={len(train)} test={len(test)}")
+    train = train_users.merge(text_source, on="user_id", how="inner")
+    test  = test_users.merge(text_source, on="user_id", how="inner")
+
+    print(f"\n  {condition} ({level}-level): "
+          f"train={len(train)} ({train['y'].sum()} pos), "
+          f"test={len(test)} ({test['y'].sum()} pos)")
 
     tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
     model     = AutoModelForSequenceClassification.from_pretrained(
         model_path, num_labels=2, trust_remote_code=True
     ).to(device)
 
+    collate = partial(collate_batch, tokenizer=tokenizer)
     train_ds = PostDataset(train["text"], train["y"], tokenizer)
     test_ds  = PostDataset(test["text"],  test["y"],  tokenizer)
-    train_dl = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True,  num_workers=4)
-    test_dl  = DataLoader(test_ds,  batch_size=BATCH_SIZE, shuffle=False, num_workers=4)
+    train_dl = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True,  num_workers=4,
+                           collate_fn=collate)
+    test_dl  = DataLoader(test_ds,  batch_size=BATCH_SIZE, shuffle=False, num_workers=4,
+                           collate_fn=collate)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=LR)
 
@@ -171,11 +203,16 @@ def main():
     parser.add_argument("--model",     choices=list(MODELS), required=True)
     parser.add_argument("--condition", default="all",
                         help="Condition name or 'all'")
-    parser.add_argument("--output",    default=None)
+    parser.add_argument("--output",    default=None,
+                        help="Default: results/finetune_<model>_<post|user>.csv, based on --user-level")
+    parser.add_argument("--user-level", action="store_true",
+                        help="Concatenate each user's posts into a single example "
+                             "(default: post-level, one example per post)")
     args = parser.parse_args()
 
     model_path = MODELS[args.model]
-    out_path   = args.output or f"results/finetune_{args.model}.csv"
+    level      = "user" if args.user_level else "post"
+    out_path   = args.output or f"results/finetune_{args.model}_{level}.csv"
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -183,18 +220,21 @@ def main():
     if device.type == "cuda":
         print(f"GPU: {torch.cuda.get_device_name(0)}")
 
-    manifest = load_user_texts()
+    pre, manifest = load_data()
+    text_source = aggregate_user_text(pre) if args.user_level else pre[["user_id", "text"]]
     conditions = sorted(manifest["condition"].unique()) if args.condition == "all" else [args.condition]
 
     records = []
     for condition in conditions:
         print(f"\n{'='*50}")
-        print(f"Model: {args.model}  Condition: {condition}")
-        metrics = run_condition(condition, manifest, model_path, device)
+        print(f"Model: {args.model}  Condition: {condition}  Level: {level}")
+        metrics = run_condition(condition, manifest, text_source, model_path, device,
+                                 RANDOM_SEED, level)
         if metrics is None:
             continue
         metrics["condition"] = condition
         metrics["model"]     = args.model
+        metrics["level"]     = level
         records.append(metrics)
 
     if not records:
@@ -202,7 +242,7 @@ def main():
         return
 
     results = pd.DataFrame(records)[
-        ["condition", "model", "f1", "accuracy", "precision", "recall"]]
+        ["condition", "level", "model", "f1", "accuracy", "precision", "recall"]]
     results.to_csv(out_path, index=False)
     print(f"\nResults saved to {out_path}")
     print(results.to_string(index=False))
