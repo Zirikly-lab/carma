@@ -1,0 +1,166 @@
+Device: cuda
+GPU: Tesla V100-PCIE-16GB
+Loading preprocessed posts …
+Loading split manifest …
+  9,149 users with posts, 7,467 users in manifest, 13 conditions
+
+==================================================
+Model: camelbert  Condition: adhd  Level: post
+
+  adhd (post-level): train=130154 (94336 pos), test=17313 (10501 pos)
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 31520.64it/s]
+[transformers] [1mBertForSequenceClassification LOAD REPORT[0m from: CAMeL-Lab/bert-base-arabic-camelbert-mix
+Key                                        | Status     | 
+-------------------------------------------+------------+-
+cls.predictions.bias                       | UNEXPECTED | 
+cls.seq_relationship.bias                  | UNEXPECTED | 
+cls.predictions.decoder.bias               | UNEXPECTED | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED | 
+cls.seq_relationship.weight                | UNEXPECTED | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED | 
+cls.predictions.transform.dense.weight     | UNEXPECTED | 
+cls.predictions.transform.dense.bias       | UNEXPECTED | 
+cls.predictions.decoder.weight             | UNEXPECTED | 
+classifier.bias                            | MISSING    | 
+classifier.weight                          | MISSING    | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+    epoch 1: loss=0.5462  F1=0.733  Acc=0.607
+    epoch 2: loss=0.4732  F1=0.723  Acc=0.610
+    epoch 3: loss=0.3564  F1=0.720  Acc=0.608
+
+==================================================
+Model: camelbert  Condition: anxiety  Level: post
+
+  anxiety (post-level): train=128584 (87060 pos), test=12511 (8952 pos)
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 15722.91it/s]
+[transformers] [1mBertForSequenceClassification LOAD REPORT[0m from: CAMeL-Lab/bert-base-arabic-camelbert-mix
+Key                                        | Status     | 
+-------------------------------------------+------------+-
+cls.predictions.bias                       | UNEXPECTED | 
+cls.seq_relationship.bias                  | UNEXPECTED | 
+cls.predictions.decoder.bias               | UNEXPECTED | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED | 
+cls.seq_relationship.weight                | UNEXPECTED | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED | 
+cls.predictions.transform.dense.weight     | UNEXPECTED | 
+cls.predictions.transform.dense.bias       | UNEXPECTED | 
+cls.predictions.decoder.weight             | UNEXPECTED | 
+classifier.bias                            | MISSING    | 
+classifier.weight                          | MISSING    | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+    epoch 1: loss=0.5865  F1=0.791  Acc=0.668
+    epoch 2: loss=0.4975  F1=0.788  Acc=0.669
+    epoch 3: loss=0.3658  F1=0.755  Acc=0.636
+
+==================================================
+Model: camelbert  Condition: autism  Level: post
+
+  autism (post-level): train=42839 (30584 pos), test=4974 (3295 pos)
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 33670.84it/s]
+[transformers] [1mBertForSequenceClassification LOAD REPORT[0m from: CAMeL-Lab/bert-base-arabic-camelbert-mix
+Key                                        | Status     | 
+-------------------------------------------+------------+-
+cls.predictions.bias                       | UNEXPECTED | 
+cls.seq_relationship.bias                  | UNEXPECTED | 
+cls.predictions.decoder.bias               | UNEXPECTED | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED | 
+cls.seq_relationship.weight                | UNEXPECTED | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED | 
+cls.predictions.transform.dense.weight     | UNEXPECTED | 
+cls.predictions.transform.dense.bias       | UNEXPECTED | 
+cls.predictions.decoder.weight             | UNEXPECTED | 
+classifier.bias                            | MISSING    | 
+classifier.weight                          | MISSING    | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+    epoch 1: loss=0.5386  F1=0.784  Acc=0.661
+    epoch 2: loss=0.4080  F1=0.775  Acc=0.656
+    epoch 3: loss=0.2430  F1=0.765  Acc=0.651
+
+==================================================
+Model: camelbert  Condition: bipolar  Level: post
+
+  bipolar (post-level): train=10570 (7422 pos), test=3227 (2557 pos)
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 32624.55it/s]
+[transformers] [1mBertForSequenceClassification LOAD REPORT[0m from: CAMeL-Lab/bert-base-arabic-camelbert-mix
+Key                                        | Status     | 
+-------------------------------------------+------------+-
+cls.predictions.bias                       | UNEXPECTED | 
+cls.seq_relationship.bias                  | UNEXPECTED | 
+cls.predictions.decoder.bias               | UNEXPECTED | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED | 
+cls.seq_relationship.weight                | UNEXPECTED | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED | 
+cls.predictions.transform.dense.weight     | UNEXPECTED | 
+cls.predictions.transform.dense.bias       | UNEXPECTED | 
+cls.predictions.decoder.weight             | UNEXPECTED | 
+classifier.bias                            | MISSING    | 
+classifier.weight                          | MISSING    | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+    epoch 1: loss=0.5471  F1=0.861  Acc=0.756
+    epoch 2: loss=0.3840  F1=0.812  Acc=0.699
+    epoch 3: loss=0.1727  F1=0.867  Acc=0.769
+
+==================================================
+Model: camelbert  Condition: bpd  Level: post
+
+  bpd (post-level): train=16178 (10321 pos), test=1660 (1254 pos)
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 10807.68it/s]
+[transformers] [1mBertForSequenceClassification LOAD REPORT[0m from: CAMeL-Lab/bert-base-arabic-camelbert-mix
+Key                                        | Status     | 
+-------------------------------------------+------------+-
+cls.predictions.bias                       | UNEXPECTED | 
+cls.seq_relationship.bias                  | UNEXPECTED | 
+cls.predictions.decoder.bias               | UNEXPECTED | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED | 
+cls.seq_relationship.weight                | UNEXPECTED | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED | 
+cls.predictions.transform.dense.weight     | UNEXPECTED | 
+cls.predictions.transform.dense.bias       | UNEXPECTED | 
+cls.predictions.decoder.weight             | UNEXPECTED | 
+classifier.bias                            | MISSING    | 
+classifier.weight                          | MISSING    | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+    epoch 1: loss=0.5149  F1=0.819  Acc=0.728
+    epoch 2: loss=0.3404  F1=0.796  Acc=0.711
+    epoch 3: loss=0.1670  F1=0.692  Acc=0.612
+
+==================================================
+Model: camelbert  Condition: depression  Level: post
+
+  depression (post-level): train=351102 (239687 pos), test=37621 (25538 pos)
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 33236.43it/s]
+[transformers] [1mBertForSequenceClassification LOAD REPORT[0m from: CAMeL-Lab/bert-base-arabic-camelbert-mix
+Key                                        | Status     | 
+-------------------------------------------+------------+-
+cls.predictions.bias                       | UNEXPECTED | 
+cls.seq_relationship.bias                  | UNEXPECTED | 
+cls.predictions.decoder.bias               | UNEXPECTED | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED | 
+cls.seq_relationship.weight                | UNEXPECTED | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED | 
+cls.predictions.transform.dense.weight     | UNEXPECTED | 
+cls.predictions.transform.dense.bias       | UNEXPECTED | 
+cls.predictions.decoder.weight             | UNEXPECTED | 
+classifier.bias                            | MISSING    | 
+classifier.weight                          | MISSING    | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+    epoch 1: loss=0.6041  F1=0.778  Acc=0.666
+    epoch 2: loss=0.5572  F1=0.791  Acc=0.670

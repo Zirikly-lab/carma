@@ -307,12 +307,6 @@ def type_token_ratio(tokens, sample_size, seed):
     return len(set(tokens)) / len(tokens)
 
 
-def marker_rate(counts, marker_set):
-    total = sum(counts.values())
-    hits = sum(c for w, c in counts.items() if w in marker_set)
-    return hits / total * 1000  # per 1,000 tokens
-
-
 def summarize_group(posts_df, seed, ttr_sample_size):
     all_tokens = []
     post_lengths = []
@@ -332,8 +326,6 @@ def summarize_group(posts_df, seed, ttr_sample_size):
         "n_tokens": len(all_tokens),
         "ttr": type_token_ratio(all_tokens, ttr_sample_size, seed),
         "mean_tokens_per_post": float(np.mean(post_lengths)) if post_lengths else 0.0,
-        "first_person_rate_per_1k": marker_rate(counts, FIRST_PERSON_TOKENS),
-        "negation_rate_per_1k": marker_rate(counts, NEGATION_TOKENS),
     }
     return stats, counts, user_counts
 
@@ -352,6 +344,8 @@ def main():
     parser.add_argument("--min-user-freq", type=int, default=MIN_USER_FREQ,
                          help="Minimum distinct users in a group required for a token's "
                               "count there to count towards the log-odds ranking")
+    parser.add_argument("--n-workers", type=int, default=None,
+                         help="Worker processes for morphological tagging (default: all cores)")
     args = parser.parse_args()
 
     output = Path(args.output)
@@ -362,6 +356,11 @@ def main():
     print("\nComputing summary statistics …")
     diag_stats, diag_counts, diag_user_counts = summarize_group(diag_posts, RANDOM_SEED, args.ttr_sample_size)
     ctrl_stats, ctrl_counts, ctrl_user_counts = summarize_group(ctrl_posts, RANDOM_SEED, args.ttr_sample_size)
+
+    print("\nTagging first-person / negation markers (diagnosed) …")
+    diag_stats.update(morphological_marker_rates(diag_posts, args.n_workers))
+    print("Tagging first-person / negation markers (control) …")
+    ctrl_stats.update(morphological_marker_rates(ctrl_posts, args.n_workers))
 
     stats_df = pd.DataFrame([
         {"group": "diagnosed", **diag_stats},
