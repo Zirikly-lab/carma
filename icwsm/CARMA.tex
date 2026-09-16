@@ -69,7 +69,7 @@
 \maketitle
 
 \begin{abstract}
-Mental health has emerged as a critical global issue, yet Arabic NLP resources for mental health research remain scarce. We introduce \textbf{CARMA}, a large-scale corpus from Reddit (4,365 diagnosed users and 2,875 control, \textbf{\textasciitilde625K} posts), covering users who have self-reported diagnoses of mental health conditions. The high quality corpus targets 12 conditions and a control group. We collect data using a high-precision, pattern-based extraction pipeline validated
+Mental health has emerged as a critical global issue, yet Arabic NLP resources for mental health research remain scarce. We introduce \textbf{CARMA}, a large-scale corpus from Reddit (4,365 diagnosed users and 2,875 control, \textbf{\textasciitilde625K} posts), covering users who have self-reported diagnoses of mental health conditions. The corpus targets 12 conditions and a control group. We collect data using a precision-oriented, pattern-based extraction pipeline (estimated at \textasciitilde78\% precision by manual annotation) validated
 through manual human annotation that combines self-disclosure phrases with condition-specific keywords designed to support four
 Arabic dialect groups (Gulf, Egyptian, Levantine, and Modern Standard Arabic) to identify posts containing genuine diagnostic self-reports, though the resulting corpus skews toward Egyptian and Gulf Arabic rather than representing these groups evenly. We employ an author-level approach that retrieves complete posting histories including relevant meta data (subreddit, time of creation, interaction stats) to enable longitudinal analysis. We benchmark the performance of current detection models and leverage Large Language Models to establish baselines for Arabic mental health classification.
 \end{abstract}
@@ -95,14 +95,14 @@ Despite this progress, the overwhelming majority of existing resources target En
 In this paper, we address these gaps by introducing \textbf{CARMA}, a large-scale and carefully-curated Arabic mental
 health corpus collected from Reddit. The corpus follows the self-reported
 diagnosis paradigm: we develop a dialect-aware, pattern-based extraction pipeline. We adopt an author-level collection strategy, retrieving the complete posting histories of
-identified users to support longitudinal analysis of linguistic patterns beyond the initial disclosure posts and including further metadata about the post. The corpus targets 12 conditions and a control group (Table~\ref{tab:arabic_datasets}).
+identified users to support longitudinal analysis of linguistic patterns beyond the initial disclosure posts and including further metadata about the post. The corpus targets 12 conditions and a control group (Table~\ref{tab:arabic_datasets}).\footnote{Throughout this paper, \textit{diagnosed} and \textit{control} are shorthand for \textit{self-reported} group assignment, not clinical verification: ``diagnosed'' users are those who publicly self-disclosed a diagnosis, and ``control'' users are those screened for the absence of such disclosure, not clinically confirmed to be healthy. See \S\ref{subsec:self_disclosure_grounding} for the full discussion and its limitations.}
 
 Our contributions are as follows:
 \begin{enumerate}
     \item We introduce \textbf{CARMA}, a large-scale Arabic mental health corpus
     collected from Reddit, targeting 12 conditions and a control group.
 
-    \item We develop the first high precision, dialect aware, automatic pattern-based extraction pipeline to identify self disclosure in Arabic.
+    \item We develop the first precision-oriented, dialect aware, automatic pattern-based extraction pipeline to identify self disclosure in Arabic.
 
     \item We validate the automatic extraction pipeline through manual annotation.
 
@@ -120,7 +120,7 @@ Our contributions are as follows:
 \label{subsec:related_social_media}
 Research on detecting mental health conditions from social media has grown substantially over the past decade, from early work demonstrating that linguistic and behavioral signals can identify users experiencing depression \citep{de2013predicting} to the CLPsych workshop series \citep{coppersmith2015clpsych}, which introduced standardized shared tasks and evaluation frameworks that helped establish methodological foundations for the field.
 
-A key development is the \textit{self-reported diagnosis} paradigm, which identifies users who publicly disclose a clinical diagnosis through pattern matching. \citet{coppersmith2014quantifying} first introduced this approach on Twitter via regular-expression matching; \citet{cohan-etal-2018-smhd} extended it to Reddit with SMHD, a large-scale corpus covering nine conditions, and \citet{mankarious2025mindset} followed a similar methodology at larger scale on the same platform. The paradigm has since been applied to other languages, including German (SMHD-GER, \citealp{zanwar2023smhd}). \citet{harrigian2021state} survey existing social media mental-health datasets, noting that the majority target English, leaving other languages substantially underrepresented.
+A key development is the \textit{self-reported diagnosis} paradigm, which identifies users who publicly disclose a clinical diagnosis through pattern matching. \citet{coppersmith2014quantifying} first introduced this approach on Twitter via regular-expression matching; \citet{cohan-etal-2018-smhd} extended it to Reddit with SMHD, a large-scale corpus covering nine conditions, and \citet{mankarious2025mindset} followed a similar methodology at larger scale on the same platform with MINDSET. The paradigm has since been applied to other languages, including German (SMHD-GER, \citealp{zanwar2023smhd}). \citet{harrigian2021state} survey existing social media mental-health datasets, noting that the majority target English, leaving other languages substantially underrepresented.
 
 \subsection{Arabic NLP for Mental Health}
 \label{subsec:related_arabic}
@@ -177,8 +177,8 @@ all three of these limitations.
 \subsection{Diagnosed Dataset}
 
 We collect data from Reddit using pre-downloaded JSONL archives from Arctic Shift\footnote{\url{https://github.com/ArthurHeitmann/arctic_shift}} (Pushshift format), containing posts and comments from Arabic-speaking subreddits\footnote{We obtained an excempt IRB approval for this study from our institution, exempt under DHHS regulatory category 4. }. Reddit offers longer, more detailed self-reports that are well-suited to the self-reported diagnosis paradigm. To the best of our knowledge, there are no dedicated Arabic-language mental health subreddits comparable to those in English (e.g., r/depression, r/SuicideWatch). Consequently, our dataset is derived entirely from general regional subreddits (e.g., r/saudiarabia, r/Egypt, r/jordan), from which we extract mental-health-relevant content; this subreddit pool is itself unevenly represented in the resulting corpus rather than uniform across regions (Appendix~\ref{app:subreddit_time}).
-Our extraction pipeline follows the self-reported diagnosis paradigm established by \citet{coppersmith2014quantifying} and adopted in subsequent corpus-construction work \citep{coppersmith2015clpsych, cohan-etal-2018-smhd}, which identifies diagnosed users via high-precision pattern matching over diagnosis-disclosure phrases rather than clinical verification (See section \ref{subsec:self_disclosure_grounding} for more discussion about self reported diagnosis).
-We use a curated list of condition keywords (e.g., \foreignlanguage{arabic}{اكتئاب حاد}, "Severe Depression") and diagnosis phrases (e.g., \foreignlanguage{arabic}{تم تشخيصي بـ}, "I was diagnosed with"), checking whether they co-occur within a 40-character window (measured at the Unicode character level). See Appendix~\ref{app:keywords} and Appendix~\ref{app:phrases} for a detailed pattern description. To enhance inclusivity and robustness, the phrase list incorporates variations across Arabic dialects, including Modern Standard Arabic, Egyptian, and Levantine, along with frequent spellings and misspellings to account for the diverse posting habits of social media users.
+Our extraction pipeline follows the self-reported diagnosis paradigm established by \citet{coppersmith2014quantifying} and adopted in subsequent corpus-construction work \citep{coppersmith2015clpsych, cohan-etal-2018-smhd}, which identifies diagnosed users via precision-oriented pattern matching over diagnosis-disclosure phrases rather than clinical verification (See section \ref{subsec:self_disclosure_grounding} for more discussion about self reported diagnosis).
+We use a curated list of condition keywords (e.g., \foreignlanguage{arabic}{اكتئاب حاد}, "Severe Depression") and diagnosis phrases (e.g., \foreignlanguage{arabic}{تم تشخيصي بـ}, "I was diagnosed with"), checking whether they co-occur within a 40-character window (measured at the Unicode character level), the same window width used by \citet{cohan-etal-2018-smhd} in constructing SMHD, where a sweep over candidate distances found 40 characters to maximize $F_{0.5}$ (precision-weighted) on their validation set. See Appendix~\ref{app:keywords} and Appendix~\ref{app:phrases} for a detailed pattern description. To enhance inclusivity and robustness, the phrase list incorporates variations across Arabic dialects, including Modern Standard Arabic, Egyptian, and Levantine, along with frequent spellings and misspellings to account for the diverse posting habits of social media users.
 
 
 \subsection{Grounding Self-Disclosure-Based Group Assignment}
@@ -210,7 +210,7 @@ it is based on \citep{coppersmith2014quantifying, cohan-etal-2018-smhd}.
 
 \subsection{Preprocessing}
 
-We apply two filtering steps to the collected post histories. First, we remove all posts containing mental health-related content (self-disclosures, condition keywords, and medication mentions) \footnote{We used a list of 305 medications and 140 condition specific terms. Any post that contained an item of this list was excluded from the dataset. 14,621 posts were excluded.} to prevent models from relying on explicit diagnostic markers when learning to classify users. This design encourages models to learn more subtle linguistic and behavioral signals rather than trivial keyword-based cues, aligning with prior work in mental health NLP \cite{cohan-etal-2018-smhd}. Second, we filter out non-Arabic content using fasttext library to ensure linguistic consistency across the corpus. Any post containing 20\% or more non Arabic content was excluded. In addition, we remove posts with less than 10 words, including posts marked as [removed] by the reddit API.\footnote{Arctic Shift API allows users to submit requests to remove their posts}
+We apply two filtering steps to the collected post histories. First, we remove all posts containing mental health-related content (self-disclosures, condition keywords, and medication mentions) \footnote{We used a list of 305 medications and 140 condition specific terms. Any post that contained an item of this list was excluded from the dataset. 14,621 posts were excluded.} to prevent models from relying on explicit diagnostic markers when learning to classify users. This design encourages models to learn more subtle linguistic and behavioral signals rather than trivial keyword-based cues, aligning with prior work in mental health NLP \cite{cohan-etal-2018-smhd}. Second, we filter out non-Arabic content using the FastText library to ensure linguistic consistency across the corpus. Any post containing 20\% or more non Arabic content was excluded. In addition, we remove posts with fewer than 10 words, including posts marked as [removed] by the Reddit API.\footnote{Arctic Shift API allows users to submit requests to remove their posts}
 
 \subsection{Control Dataset}
 We further construct a control dataset of 2,875 users in a similar manner by scraping entire public user post histories from general Arabic-speaking subreddits (e.g., r/SaudiArabia) for candidate control users. Control users are subject to strict exclusion criteria: we immediately discard a candidate if they have ever posted about a mental health-related issue on the platform. For this filtration, we use the same pattern developed to identify diagnosed users, scanning for matching phrases, medication keywords, or other mental health-related terminology. See Appendix~\ref{app:phrases} for more detail. Such stringent exclusion criteria are inspired by previous literature \cite{cohan-etal-2018-smhd} to minimize the risk of including affected users in the control group.
@@ -255,7 +255,15 @@ consistent with prior manually-validated self-report extraction
 pipelines for social-media mental health corpora, which likewise rely
 on human spot-checks to characterise imperfect precision rather than
 achieving it by construction \citep{cohan-etal-2018-smhd,
-coppersmith-etal-2014-quantifying}. We restrict this headline estimate
+coppersmith-etal-2014-quantifying}. We describe the pipeline as
+\textit{precision-oriented} rather than \textit{high-precision} in an
+unqualified sense: an estimated 78.3\% precision is a substantial
+improvement over unconstrained condition-keyword matching (which would
+also match third-person mentions, negations, and sarcasm with no
+co-occurrence or phrase constraint at all), but it is not the near-perfect
+precision that phrase ``high precision'' might otherwise imply, and we
+flag the residual 21.7\% false-positive rate as a corpus-precision caveat
+throughout (Limitations). We restrict this headline estimate
 to the two human annotators; \S\ref{subsec:llm_judges} summarizes a
 parallel experiment adding two LLM judges as additional raters and why
 we do not fold them into this estimate, with the full analysis in
@@ -311,8 +319,8 @@ The most frequent comorbid pairs are depression+anxiety (86 users), depression+A
 
 \subsection{Language and Dialect}
 \label{subsec:dialect}
-Dialect identification was performed using CAMeLBERT-Mix DID NADI Model\footnote{\url{https://huggingface.co/CAMeL-Lab/bert-base-arabic-camelbert-mix-did-nadi}} \cite{inoue-etal-2021-interplay}, a BERT-based transformer fine-tuned on the NADI country-level dataset for Arabic dialect classification. As shown in Figure~\ref{fig:dialect_dist},
-Egyptian Arabic is the dominant dialect in CARMA (55.75\%), with Egypt as the primary contributing country, consistent with its status as one of the most populous Arabic-speaking countries with approximately 116 million inhabitants as of 2024\footnote{Population estimates sourced from official 2024 UN demographic data.} \citep{un2024wpp_data}. Gulf Arabic constitutes the second-largest group, primarily driven by Saudi Arabia (approximately 35 million inhabitants). Levantine and Maghrebi Arabic together account for under 7\% of the corpus. This distribution reflects the strong presence of Egyptian Arabic speakers on Reddit and their engagement in public regional subreddits, and is corroborated directly by the subreddit-level provenance of the corpus's self-disclosure posts (Appendix~\ref{app:subreddit_time}, Figure~\ref{fig:subreddit_dist}): although the extraction pipeline's phrase and keyword patterns are designed to support Gulf, Egyptian, Levantine, and Modern Standard Arabic phrasing (\S\ref{subsec:data_source}), the resulting corpus is not evenly distributed across these dialects, and should not be read as a general or balanced sample of Arabic Reddit.
+Dialect identification was performed using CAMeLBERT-Mix DID NADI Model\footnote{\url{https://huggingface.co/CAMeL-Lab/bert-base-arabic-camelbert-mix-did-nadi}} \cite{inoue-etal-2021-interplay}, a BERT-based transformer fine-tuned on the 21-label NADI country-level dataset for Arabic dialect classification; \citet{inoue-etal-2021-interplay} report this model among the strongest of the DID variants they evaluate on the NADI country-level benchmark. We did not separately validate the model's accuracy on CARMA's own Reddit text, so some domain shift relative to its original (Twitter-sourced) NADI training/evaluation data is possible; we treat the resulting dialect labels as a description of the corpus rather than a validated ground truth, consistent with how the extraction pipeline's own precision is treated (\S\ref{subsec:human_annotation}). As shown in Figure~\ref{fig:dialect_dist},
+Egyptian Arabic is the dominant dialect in CARMA (56.1\%), with Egypt as the primary contributing country, consistent with its status as one of the most populous Arabic-speaking countries with approximately 116 million inhabitants as of 2024\footnote{Population estimates sourced from official 2024 UN demographic data.} \citep{un2024wpp_data}. Gulf Arabic constitutes the second-largest group, primarily driven by Saudi Arabia (approximately 35 million inhabitants). Levantine and Maghrebi Arabic together account for under 7\% of the corpus. This distribution reflects the strong presence of Egyptian Arabic speakers on Reddit and their engagement in public regional subreddits, and is corroborated directly by the subreddit-level provenance of the corpus's self-disclosure posts (Appendix~\ref{app:subreddit_time}, Figure~\ref{fig:subreddit_dist}): although the extraction pipeline's phrase and keyword patterns are designed to support Gulf, Egyptian, Levantine, and Modern Standard Arabic phrasing (\S\ref{subsec:data_source}), the resulting corpus is not evenly distributed across these dialects, and should not be read as a general or balanced sample of Arabic Reddit.
 
 
 \begin{figure}[h]
@@ -403,7 +411,7 @@ In this work, we introduce a large-scale Arabic mental health corpus comprising 
 
 Table~\ref{tab:results_summary} summarizes the best F1 score achieved for each condition by the two modeling pipelines at both the post and user levels (reported as \textit{post level $|$ user level}). Complete per-model results are provided in Appendix Tables~\ref{tab:results_classical_full} and~\ref{tab:results_plm_full}.
 
-Three considerations are important when interpreting these results. First, the reported scores should be viewed primarily as strong baseline benchmarks for future work rather than as an exhaustive evaluation of the full range of possible modeling approaches. Second, performance on conditions with relatively few diagnosed users (e.g., eating disorders, schizophrenia, bipolar disorder, and suicidal ideation) should be interpreted with caution, as the corresponding test sets are small and therefore produce less stable evaluation estimates. Third, and most importantly, dialectal and topical differences between the diagnosed and control subreddit pools are a plausible confound that neither pipeline can separate from condition-specific signal at the representation level, so the F1 scores below should be read as evidence of separability under the current corpus construction, not as validated clinical signal; see §\ref{subsec:lexsem} and Limitations for the supporting evidence and full discussion.
+Four considerations are important when interpreting these results. First, the reported scores should be viewed primarily as strong baseline benchmarks for future work rather than as an exhaustive evaluation of the full range of possible modeling approaches. Second, performance on conditions with relatively few diagnosed users (e.g., eating disorders, schizophrenia, bipolar disorder, and suicidal ideation) should be interpreted with caution, as the corresponding test sets are small and therefore produce less stable evaluation estimates. Third, and most importantly, dialectal and topical differences between the diagnosed and control subreddit pools are a plausible confound that neither pipeline can separate from condition-specific signal at the representation level, so the F1 scores below should be read as evidence of separability under the current corpus construction, not as validated clinical signal; see §\ref{subsec:lexsem} and Limitations for the supporting evidence and full discussion. Fourth, the notably high recall scores at the post level (Appendix Table~\ref{tab:results_classical_full}) partly reflect a post-count imbalance introduced by our user-level balancing: diagnosed and control users are sampled 1:1 by \textit{user count} (\S\ref{subsec:setup}), but diagnosed users contribute roughly 1.7--2.6$\times$ as many posts per user on average as control users across conditions, so post-level train/test sets skew toward the positive class even though user counts are balanced, biasing classifiers toward predicting positive and inflating recall (at some cost to precision) relative to what a post-count-balanced split would show.
 
 \begin{table}[t]
 \centering
@@ -455,10 +463,16 @@ We release this corpus to facilitate future research in Arabic computational psy
 
 \section*{Limitations}
 \paragraph{Dialectal and Topical Confounding in Classification Results.}
-A key concern with the classification results of §\ref{sec:results} is that reported performance may partially reflect dialectal and topical differences between the diagnosed and control groups rather than condition-specific language. The log-odds analysis of §\ref{subsec:lexsem} indicates that many of the most discriminative features are regional discourse markers (e.g., Gulf-Arabic pronouns and particles) or topic-specific vocabulary (e.g., news/political terms, regional dishes) rather than clinical language, and this pattern is consistent with the regional and dialectal skew documented in §\ref{subsec:dialect} and Appendix~\ref{app:subreddit_time}: diagnosed and control users are drawn from overlapping but not identical pools of subreddits, so dialect and topic composition can differ systematically between the two groups by construction, independent of the target condition. Neither the TF-IDF nor the fine-tuned PLM pipeline is able to separate condition-specific signal from these confounds at the representation level, and we did not run experiments that explicitly control for dialect or topic (e.g., dialect-matched control sampling, or ablations that remove the log-odds-flagged terms). We therefore cannot currently quantify how much of the reported classification performance is attributable to genuine condition-specific signal versus dialectal or topical separability, and recommend the classification results in §\ref{sec:results} be interpreted as evidence of separability between diagnosed and control text under the current corpus construction, rather than as validated clinical signal, until controlled analyses of this kind are conducted. Designing and validating such controls, e.g., dialect-matched control sampling, or topic-adjusted feature ablations, is a substantial undertaking in its own right and is out of scope for the present work, whose primary contribution is the construction, validation, and release of the CARMA corpus itself rather than a definitive classification benchmark; we leave this confound analysis to future work built on the released resource.
+A key concern with the classification results of §\ref{sec:results} is that reported performance may partially reflect dialectal and topical differences between the diagnosed and control groups rather than condition-specific language. The log-odds analysis of §\ref{subsec:lexsem} indicates that many of the most discriminative features are regional discourse markers (e.g., Gulf-Arabic pronouns and particles) or topic-specific vocabulary (e.g., news/political terms, regional dishes) rather than clinical language, and this pattern is consistent with the regional and dialectal skew documented in §\ref{subsec:dialect} and Appendix~\ref{app:subreddit_time}: diagnosed and control users are drawn from overlapping but not identical pools of subreddits, so dialect and topic composition can differ systematically between the two groups by construction, independent of the target condition. Neither the TF-IDF nor the fine-tuned PLM pipeline is able to separate condition-specific signal from these confounds at the representation level, and we did not run experiments that explicitly control for dialect or topic (e.g., dialect-matched control sampling, or ablations that remove the log-odds-flagged terms). Frequency- or subreddit-matched control sampling, as used in constructing SMHD \citep{cohan-etal-2018-smhd} and MINDSET \citep{mankarious2025mindset}, was feasible in those corpora because English-language Reddit offers a large enough pool of candidate control users and matched subreddits to sample from; the Arabic-speaking subreddit ecosystem is comparatively small (\S\ref{subsec:data_source}, Appendix~\ref{app:subreddit_time}), so restricting control sampling to subreddits or posting-frequency bands that match the diagnosed group would substantially shrink an already modest control pool and is not currently feasible at this corpus's scale. We therefore cannot currently quantify how much of the reported classification performance is attributable to genuine condition-specific signal versus dialectal or topical separability, and recommend the classification results in §\ref{sec:results} be interpreted as evidence of separability between diagnosed and control text under the current corpus construction, rather than as validated clinical signal, until controlled analyses of this kind are conducted. Designing and validating such controls, e.g., dialect-matched control sampling, or topic-adjusted feature ablations, is a substantial undertaking in its own right and is out of scope for the present work, whose primary contribution is the construction, validation, and release of the CARMA corpus itself rather than a definitive classification benchmark; we leave this confound analysis to future work built on the released resource.
 
 \paragraph{Annotation Pipeline Reliability.}
 The pattern-based extraction pipeline prioritises precision through strict phrase-keyword co-occurrence matching (Appendix~\ref{app:keywords}, Appendix~\ref{app:phrases}), which may miss self-disclosures phrased outside the curated phrase and keyword lists, limiting recall. Our human validation on a 240-post sample indicates substantial but imperfect precision (Ann-1 vs.\ Ann-2 $\kappa = 0.701$, 89.8\% agreement; §\ref{subsec:human_annotation}), from which we estimate a residual false-positive rate of approximately 21.7\% (mean of the two annotators' individual FP rates, 19.1--24.3\%; §\ref{subsec:human_annotation}) in the corpus.
+
+\paragraph{Temporal Validity of Posting History.}
+Once a user's disclosure post is confirmed, we retrieve and use their \textit{entire} available posting history (\S\ref{subsec:corpus_overview}) without regard to when each post falls relative to the disclosure event: a post written years before the disclosure -- potentially before the condition's onset or before the user's own diagnosis -- is treated identically to one written immediately after it. Because the released per-post fields do not retain a timestamp for every post in a user's complete history (only the confirming self-disclosure posts retain \texttt{created\_utc}; Appendix~\ref{app:subreddit_time}), we cannot directly quantify what fraction of each user's retained posts precede versus follow their disclosure. This is a limitation inherited from the underlying self-reported-diagnosis paradigm (\S\ref{subsec:self_disclosure_grounding}) rather than one specific to CARMA, but it means linguistic patterns attributed to a condition may in part reflect a user's language at any point in their posting history, not specifically the period during or after diagnosis.
+
+\paragraph{Input Truncation in PLM Baselines.}
+The user-level PLM experiments (\S\ref{subsec:setup}) concatenate a user's posts into a single sequence truncated to the model's maximum input length, discarding whatever text falls beyond that limit and collapsing the temporal order of a user's posting history into one static representation. This is a likely contributor to the post-to-user performance drop observed for both AraBERT-Twitter and CAMeLBERT (§\ref{sec:results}) and means the user-level PLM results should be read as a baseline for a single-sequence encoding of user history, not as an upper bound on what a history-aware architecture (e.g., hierarchical or windowed encoding of a user's posts) could achieve on this corpus.
 
 \paragraph{Regional and Dialectal Skew.}
 Although the extraction pipeline's phrase and keyword patterns are designed to support Gulf, Egyptian, Levantine, and Modern Standard Arabic, the resulting corpus is not a balanced sample across these varieties: Egyptian and Gulf Arabic together dominate, while Levantine and Maghrebi Arabic combined account for under 7\% of the corpus, driven by a small number of Egyptian- and Saudi-focused subreddits contributing the majority of confirmed self-disclosure posts (§\ref{subsec:dialect}, Appendix~\ref{app:subreddit_time}). Posting volume is also heavily concentrated in recent years (2024 onward; Appendix~\ref{app:subreddit_time}, Figure~\ref{fig:posts_over_time}). Findings and benchmark results should therefore not be read as representative of Arabic Reddit, or of Arabic-speaking communities, in general.
@@ -474,20 +488,124 @@ This study involves publicly available social media data from users who have vol
 
 All data collection adheres to Reddit's Terms of Service and API usage guidelines at the time of collection. We use pre-downloaded public archives from Arctic Shift, which contain posts from publicly accessible Arabic-speaking subreddits, collecting only content that users have chosen to share publicly.
 
-Despite our best efforts to anonymize data, pseudonymizing user identifiers, removing self-disclosure posts, and withholding raw post content, residual re-identification risks may remain. We release only pseudonymized, aggregated statistics and model outputs, consistent with best practices in social media mental health research \cite{harrigian2021state}, and the dataset will be distributed exclusively under a Data Use Agreement (DUA) that restricts access to qualified researchers and prohibits attempts to re-identify individuals.
+Despite our best efforts to anonymize data, residual re-identification risks may remain. The released corpus consists of post-level text and per-user groupings with Reddit usernames replaced by irreversibly hashed pseudonymous identifiers, with all self-disclosure posts removed from each user's released history (\S\ref{par:sensitive_data}). Consistent with best practices in social media mental health research \cite{harrigian2021state}, the dataset is distributed exclusively under a Data Use Agreement (DUA) that restricts access to qualified researchers, prohibits attempts to re-identify individuals or re-link hashed identifiers to Reddit accounts, and prohibits redistribution.
 
 The corpus is intended solely for research purposes, specifically to advance Arabic NLP for mental health detection. We recognize that users who disclose mental health conditions on social media may not anticipate their posts being used in research. We mitigate this concern by removing all self-disclosure posts from users' released posting histories, ensuring that the data cannot be used to re-identify individuals based on their diagnostic disclosures. Researchers using this corpus should adhere to ethical guidelines for mental health research and avoid applications that could stigmatize or harm the individuals represented in the data.
 
+\paragraph{Dual-Use Risk.} A resource of this kind carries a dual-use risk beyond the individual re-identification risks addressed above: the same detection methodology could in principle be repurposed for non-consensual, individual-level mental-health profiling or screening at scale (e.g., by employers, insurers, educational institutions, or state actors) rather than for the aggregate, corpus-level research CARMA is intended for. We consider this risk to be elevated, not merely generic, in the specific social and legal context this corpus covers: across several of the jurisdictions the corpus's subreddits are drawn from, disclosed mental illness can carry significant social stigma and, in some cases, legal or occupational consequences (e.g., around employment, licensing, or family law), consequences that a self-disclosed, non-clinically-verified label (\S\ref{subsec:self_disclosure_grounding}) makes especially inappropriate to act on for any individual. We do not release any tooling packaged for individual-level screening, gate the corpus behind a DUA that restricts use to qualified researchers and prohibits re-identification (above), and explicitly discourage any deployment of models trained on this corpus for individual diagnostic, screening, employment, insurance, or law-enforcement use; the corpus and any derived models are intended for aggregate, population- and dataset-level research only.
+
 % Bibliography entries for the entire Anthology, followed by custom entries
 \bibliography{custom}
+
+\section{Paper Checklist}
+\label{sec:checklist}
+
+\begin{enumerate}
+
+\item For most authors...
+\begin{enumerate}
+    \item  Would answering this research question advance science without violating social contracts, such as violating privacy norms, perpetuating unfair profiling, exacerbating the socio-economic divide, or implying disrespect to societies or cultures?
+    \answerYes{Yes, and: this work fills a documented gap in Arabic-language mental-health NLP resources (\S\ref{sec:introduction}), and we engage directly with the social-contract risks it raises -- misleading terminology, dual-use, and stigma -- in Ethical Considerations.}
+  \item Do your main claims in the abstract and introduction accurately reflect the paper's contributions and scope?
+    \answerYes{Yes, see the Abstract and the contributions list in \S\ref{sec:introduction}.}
+   \item Do you clarify how the proposed methodological approach is appropriate for the claims made?
+    \answerYes{Yes, see \S\ref{subsec:data_source}--\ref{sec:annotation}, where the extraction pipeline is described and its precision is empirically validated via manual annotation rather than assumed.}
+   \item Do you clarify what are possible artifacts in the data used, given population-specific distributions?
+    \answerYes{Yes, see \S\ref{subsec:dialect} and the Limitations section (Dialectal and Topical Confounding; Regional and Dialectal Skew).}
+  \item Did you describe the limitations of your work?
+    \answerYes{Yes, see Limitations.}
+  \item Did you discuss any potential negative societal impacts of your work?
+    \answerYes{Yes, see Ethical Considerations, including the Dual-Use Risk paragraph.}
+      \item Did you discuss any potential misuse of your work?
+    \answerYes{Yes, see the Dual-Use Risk paragraph in Ethical Considerations.}
+    \item Did you describe steps taken to prevent or mitigate potential negative outcomes of the research, such as data and model documentation, data anonymization, responsible release, access control, and the reproducibility of findings?
+    \answerYes{Yes, see Ethical Considerations: IRB approval, hashed pseudonymous identifiers, removal of self-disclosure posts, and Data Use Agreement (DUA) gated release.}
+  \item Have you read the ethics review guidelines and ensured that your paper conforms to them?
+    \answerYes{Yes.}
+\end{enumerate}
+
+\item Additionally, if your study involves hypotheses testing...
+\begin{enumerate}
+  \item Did you clearly state the assumptions underlying all theoretical results?
+    \answerNA{NA: this paper does not test formal social-science hypotheses; it introduces a corpus and baseline classification results.}
+  \item Have you provided justifications for all theoretical results?
+    \answerNA{NA.}
+  \item Did you discuss competing hypotheses or theories that might challenge or complement your theoretical results?
+    \answerNA{NA.}
+  \item Have you considered alternative mechanisms or explanations that might account for the same outcomes observed in your study?
+    \answerNA{NA.}
+  \item Did you address potential biases or limitations in your theoretical framework?
+    \answerNA{NA.}
+  \item Have you related your theoretical results to the existing literature in social science?
+    \answerNA{NA.}
+  \item Did you discuss the implications of your theoretical results for policy, practice, or further research in the social science domain?
+    \answerNA{NA.}
+\end{enumerate}
+
+\item Additionally, if you are including theoretical proofs...
+\begin{enumerate}
+  \item Did you state the full set of assumptions of all theoretical results?
+    \answerNA{NA: this paper contains no theoretical proofs.}
+	\item Did you include complete proofs of all theoretical results?
+    \answerNA{NA.}
+\end{enumerate}
+
+\item Additionally, if you ran machine learning experiments...
+\begin{enumerate}
+  \item Did you include the code, data, and instructions needed to reproduce the main experimental results (either in the supplemental material or as a URL)?
+    \answerYes{Yes, and: the corpus is released under a Data Use Agreement restricting access to qualified researchers (Ethical Considerations); training and evaluation instructions are given in \S\ref{subsec:setup}--\ref{subsec:models}.}
+  \item Did you specify all the training details (e.g., data splits, hyperparameters, how they were chosen)?
+    \answerYes{Yes, see \S\ref{subsec:setup} (90/10 split, user-level grouping to prevent leakage) and \S\ref{subsec:models} (learning rate, batch size, epochs, early stopping).}
+     \item Did you report error bars (e.g., with respect to the random seed after running experiments multiple times)?
+    \answerNo{No, results are reported for a single run rather than averaged across seeds; we do note where small test-set sizes make individual conditions' estimates higher-variance (\S\ref{sec:results}, Appendix Tables~\ref{tab:results_classical_full}--\ref{tab:results_plm_full}).}
+	\item Did you include the total amount of compute and the type of resources used (e.g., type of GPUs, internal cluster, or cloud provider)?
+    \answerNo{No, compute resources are not itemized in this submission.}
+     \item Do you justify how the proposed evaluation is sufficient and appropriate to the claims made?
+    \answerYes{Yes, see \S\ref{subsec:eval} for the choice of metrics, and \S\ref{sec:results} for the interpretive caveats (small test sets, dialectal/topical confounding, post-level class skew) that scope what the results do and do not support.}
+     \item Do you discuss what is ``the cost`` of misclassification and fault (in)tolerance?
+    \answerNo{No formal cost analysis is included; the Dual-Use Risk paragraph in Ethical Considerations addresses related harms from acting on model outputs at the individual level, but does not quantify misclassification cost.}
+
+\end{enumerate}
+
+\item Additionally, if you are using existing assets (e.g., code, data, models) or curating/releasing new assets, \textbf{without compromising anonymity}...
+\begin{enumerate}
+  \item If your work uses existing assets, did you cite the creators?
+    \answerYes{Yes, e.g. Arctic Shift (\S\ref{subsec:data_source}), AraBERT-Twitter and CAMeLBERT (\S\ref{subsec:models}), Qwen2-7B-Instruct and Jais-2-8B-Chat (\S\ref{subsec:llm_judges}), and the CAMeLBERT-Mix DID NADI dialect model (\S\ref{subsec:dialect}).}
+  \item Did you mention the license of the assets?
+    \answerNo{No, the licenses of the pretrained models and archived data source used are not enumerated in this submission.}
+  \item Did you include any new assets in the supplemental material or as a URL?
+    \answerYes{Yes, and: the CARMA corpus itself is the new asset, released under a Data Use Agreement (Ethical Considerations).}
+  \item Did you discuss whether and how consent was obtained from people whose data you're using/curating?
+    \answerYes{Yes, and: no individual consent was obtained given the public nature of the data; this is addressed via IRB exemption (DHHS category 4) and mitigated through DUA-gated release and removal of self-disclosure posts (Ethical Considerations).}
+  \item Did you discuss whether the data you are using/curating contains personally identifiable information or offensive content?
+    \answerYes{Yes, see Ethical Considerations (sensitive mental-health information, re-identification risk) and \S\ref{par:sensitive_data}.}
+\item If you are curating or releasing new datasets, did you discuss how you intend to make your datasets FAIR (see \citet{fair})?
+\answerNo{No, the FAIR framework is not discussed explicitly, though the DUA-gated release (Ethical Considerations) addresses accessibility to qualified researchers.}
+\item If you are curating or releasing new datasets, did you create a Datasheet for the Dataset (see \citet{gebru2021datasheets})?
+\answerNo{No, a formal Datasheet is not included in this submission.}
+\end{enumerate}
+
+\item Additionally, if you used crowdsourcing or conducted research with human subjects, \textbf{without compromising anonymity}...
+\begin{enumerate}
+  \item Did you include the full text of instructions given to participants and screenshots?
+    \answerYes{Yes, and: Appendix~\ref{app:guidelines} reproduces the full annotation guidelines given to annotators; no screenshots are included, as annotation was not conducted through a crowdsourcing platform interface.}
+  \item Did you describe any potential participant risks, with mentions of Institutional Review Board (IRB) approvals?
+    \answerYes{Yes, see Ethical Considerations (exempt IRB approval, DHHS regulatory category 4).}
+  \item Did you include the estimated hourly wage paid to participants and the total amount spent on participant compensation?
+    \answerNo{No, annotator compensation is not described in this submission.}
+   \item Did you discuss how data is stored, shared, and deidentified?
+   \answerYes{Yes, see Ethical Considerations (hashed pseudonymous identifiers, removal of self-disclosure posts, DUA-gated distribution).}
+\end{enumerate}
+
+\end{enumerate}
 
 \appendix
 
 \section{Subreddit and Temporal Distribution}
 \label{app:subreddit_time}
 
-Neither \texttt{reddit-preprocessed.csv} nor any other released file
-retains a subreddit or timestamp field for every post in a user's
+The released post data does not
+retain a subreddit or timestamp field for every post in a user's
 complete retrieved history, so a per-post breakdown over the full
 $\sim$625K-post corpus is not available. We can, however, characterize
 the provenance of the posts that \textit{seeded} each user's inclusion
@@ -697,7 +815,7 @@ listed separately.
 \begin{table*}[t]
 \centering
 \small
-\caption{Condition keyword inventory (12 conditions retained, 341 keyword forms including English and Arabic variants). $\dagger$ = restricted to suffering phrases only.}
+\caption{Condition keyword inventory, 341 keyword forms including English and Arabic variants, across the 15 conditions the extraction pipeline was run on. Of these, 12 are retained in the released corpus (Table~\ref{tab:corpus_summary}); DID, Trichotillomania, and Paranoid PD yielded too few confirmed users and are excluded from the final corpus and downstream experiments, but are included here for completeness of the pattern description. $\dagger$ = restricted to suffering phrases only.}
 \label{tab:keywords}
 \begin{tabular}{p{2.8cm} p{2.2cm} p{10.2cm}}
 \toprule
@@ -950,8 +1068,7 @@ Both human annotators received the following written guidelines
 (translated from Arabic and lightly edited for clarity, but otherwise
 reproduced in full) prior to labeling. Annotators judged each post
 together with its pipeline-assigned \textit{diagnosis} column and
-assigned exactly one of three labels: \texttt{TP}, \texttt{FP}, or
-\texttt{NA}.
+assigned exactly one of two labels: \texttt{TP} or \texttt{FP}.
 
 \paragraph{True Positive (TP).} Based on the post content, does the
 annotator believe this person genuinely has the mental health condition
@@ -968,9 +1085,7 @@ diagnosed'' is \textit{not} required.
 \paragraph{False Positive (FP).} A post whose phrasing matches the
 pipeline's keyword pattern but should not be labeled a genuine
 disclosure because of a shortcoming in the pattern match, such as
-sarcasm or reference to a third party. \texttt{FP} is explicitly
-\textit{not} defined as ``a weak or uncertain diagnosis'' ,  that case
-is covered by \texttt{NA} below.
+sarcasm or reference to a third party.
 
 \begin{quote}
 \foreignlanguage{arabic}{اخويا عنده اكتئاب} ,  \textit{``My brother has depression.''} (third-person reference)\\
@@ -1127,107 +1242,5 @@ reconstructed illustration of the underlying phenomenon, not a verbatim
 CARMA post.}
 \label{tab:disagreement_examples}
 \end{table*}
-
-\section{Paper Checklist}
-\label{app:checklist}
-
-\begin{enumerate}
-
-\item For most authors...
-\begin{enumerate}
-    \item  Would answering this research question advance science without violating social contracts, such as violating privacy norms, perpetuating unfair profiling, exacerbating the socio-economic divide, or implying disrespect to societies or cultures?
-    \answerTODO{Answer}
-  \item Do your main claims in the abstract and introduction accurately reflect the paper's contributions and scope?
-    \answerTODO{Answer}
-   \item Do you clarify how the proposed methodological approach is appropriate for the claims made?
-    \answerTODO{Answer}
-   \item Do you clarify what are possible artifacts in the data used, given population-specific distributions?
-    \answerTODO{Answer}
-  \item Did you describe the limitations of your work?
-    \answerTODO{Answer}
-  \item Did you discuss any potential negative societal impacts of your work?
-    \answerTODO{Answer}
-      \item Did you discuss any potential misuse of your work?
-    \answerTODO{Answer}
-    \item Did you describe steps taken to prevent or mitigate potential negative outcomes of the research, such as data and model documentation, data anonymization, responsible release, access control, and the reproducibility of findings?
-    \answerTODO{Answer}
-  \item Have you read the ethics review guidelines and ensured that your paper conforms to them?
-    \answerTODO{Answer}
-\end{enumerate}
-
-\item Additionally, if your study involves hypotheses testing...
-\begin{enumerate}
-  \item Did you clearly state the assumptions underlying all theoretical results?
-    \answerTODO{Answer}
-  \item Have you provided justifications for all theoretical results?
-    \answerTODO{Answer}
-  \item Did you discuss competing hypotheses or theories that might challenge or complement your theoretical results?
-    \answerTODO{Answer}
-  \item Have you considered alternative mechanisms or explanations that might account for the same outcomes observed in your study?
-    \answerTODO{Answer}
-  \item Did you address potential biases or limitations in your theoretical framework?
-    \answerTODO{Answer}
-  \item Have you related your theoretical results to the existing literature in social science?
-    \answerTODO{Answer}
-  \item Did you discuss the implications of your theoretical results for policy, practice, or further research in the social science domain?
-    \answerTODO{Answer}
-\end{enumerate}
-
-\item Additionally, if you are including theoretical proofs...
-\begin{enumerate}
-  \item Did you state the full set of assumptions of all theoretical results?
-    \answerTODO{Answer}
-	\item Did you include complete proofs of all theoretical results?
-    \answerTODO{Answer}
-\end{enumerate}
-
-\item Additionally, if you ran machine learning experiments...
-\begin{enumerate}
-  \item Did you include the code, data, and instructions needed to reproduce the main experimental results (either in the supplemental material or as a URL)?
-    \answerTODO{Answer}
-  \item Did you specify all the training details (e.g., data splits, hyperparameters, how they were chosen)?
-    \answerTODO{Answer}
-     \item Did you report error bars (e.g., with respect to the random seed after running experiments multiple times)?
-    \answerTODO{Answer}
-	\item Did you include the total amount of compute and the type of resources used (e.g., type of GPUs, internal cluster, or cloud provider)?
-    \answerTODO{Answer}
-     \item Do you justify how the proposed evaluation is sufficient and appropriate to the claims made?
-    \answerTODO{Answer}
-     \item Do you discuss what is ``the cost`` of misclassification and fault (in)tolerance?
-    \answerTODO{Answer}
-
-\end{enumerate}
-
-\item Additionally, if you are using existing assets (e.g., code, data, models) or curating/releasing new assets, \textbf{without compromising anonymity}...
-\begin{enumerate}
-  \item If your work uses existing assets, did you cite the creators?
-    \answerTODO{Answer}
-  \item Did you mention the license of the assets?
-    \answerTODO{Answer}
-  \item Did you include any new assets in the supplemental material or as a URL?
-    \answerTODO{Answer}
-  \item Did you discuss whether and how consent was obtained from people whose data you're using/curating?
-    \answerTODO{Answer}
-  \item Did you discuss whether the data you are using/curating contains personally identifiable information or offensive content?
-    \answerTODO{Answer}
-\item If you are curating or releasing new datasets, did you discuss how you intend to make your datasets FAIR (see \citet{fair})?
-\answerTODO{Answer}
-\item If you are curating or releasing new datasets, did you create a Datasheet for the Dataset (see \citet{gebru2021datasheets})?
-\answerTODO{Answer}
-\end{enumerate}
-
-\item Additionally, if you used crowdsourcing or conducted research with human subjects, \textbf{without compromising anonymity}...
-\begin{enumerate}
-  \item Did you include the full text of instructions given to participants and screenshots?
-    \answerTODO{Answer}
-  \item Did you describe any potential participant risks, with mentions of Institutional Review Board (IRB) approvals?
-    \answerTODO{Answer}
-  \item Did you include the estimated hourly wage paid to participants and the total amount spent on participant compensation?
-    \answerTODO{Answer}
-   \item Did you discuss how data is stored, shared, and deidentified?
-   \answerTODO{Answer}
-\end{enumerate}
-
-\end{enumerate}
 
 \end{document}
