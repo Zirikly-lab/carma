@@ -87,9 +87,23 @@ placeholders, warnings, or TODO markers remain in the compiled text.
   installed on this cluster) — **the checked-in `CARMA.tex` still specifies Noto Sans
   Arabic**; only the local preview PDF used the substitute. Confirm Noto Sans Arabic is
   available wherever you compile for submission, or decide to switch permanently.
-- **`\resizebox` on tables is disallowed by AAAI.** 4 tables still use it (full
-  classical/PLM results, the two phrase-inventory tables) and one overflows the page by
-  ~293pt as a result (seen in the compile log). Needs reformatting before submission.
+- **[FIXED] `\resizebox` overflow on the full classical-results table (Table 5).** You
+  reported it visually cropped, cutting off Suicidal Ideation and everything below it —
+  this was the `\resizebox{\textwidth}` table with 12 conditions × 4 models (48 rows)
+  overflowing the page by ~293pt (confirmed in the compile log). Fixed by dropping
+  `\resizebox` and splitting it into two properly-sized tables
+  (`tab:results_classical_full` = conditions 1–6, `tab:results_classical_full2` =
+  conditions 7–12, both `\footnotesize` + compressed `\tabcolsep`), and updated the
+  Appendix intro sentence to reference both. Also removed `\resizebox` from the PLM
+  full-results table (Table 6, 24 rows — didn't need splitting, fits on one page at
+  `\footnotesize`). Recompiled clean: no more "Float too large" warning, no undefined
+  references from the new table split.
+  - **Still open:** the two phrase-inventory tables (Appendix D/E) still use
+    `\resizebox{\columnwidth}` — narrower single-column tables, not reported as broken,
+    but still technically AAAI-noncompliant; lower priority since not visually broken.
+  - **Minor, not from this bug:** two small "Overfull hbox" warnings remain (lines
+    ~150–167, ~397–399 in the compiled log) — a few points of text pushing past the
+    margin, cosmetic only, not table cropping. Worth a pass later but not urgent.
 - **Non-Roman script restriction.** AAAI's camera-ready text says non-Latin scripts
   "must be restricted to bit-mapped figures." Needs checking against the actual current
   ICWSM author kit (not assumed from this generic AAAI kit) before spending effort

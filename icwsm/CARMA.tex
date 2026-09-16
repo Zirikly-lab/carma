@@ -649,15 +649,16 @@ collection window of this study; users and language patterns from
 earlier years are correspondingly under-represented.
 
 \section{Full Classification Results}
-Tables \ref{tab:results_classical_full} and \ref{tab:results_plm_full} show the entire results from our two classification experiments.
+Tables \ref{tab:results_classical_full}--\ref{tab:results_classical_full2} (classical classifiers, split across two tables for length) and \ref{tab:results_plm_full} (PLMs) show the entire results from our two classification experiments.
 
 \label{app:full_results}
 
 \begin{table*}[t]
 \centering
-\caption{Full classical classifier results on CARMA (Reddit). Each cell reports \textit{post level $|$ user level}: post-level instances treat each post as an independent, author-labeled example, while user-level instances aggregate a user's posts into a single TF-IDF document. User-level test sets are small for rare conditions (e.g., $n{=}10$ for eating disorder and schizophrenia, $n{=}16$ for bipolar disorder and suicidal ideation); these F1 values are correspondingly higher-variance than the post-level results.}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{Full classical classifier results on CARMA (Reddit), conditions 1--6 of 12 (continued in Table~\ref{tab:results_classical_full2}). Each cell reports \textit{post level $|$ user level}: post-level instances treat each post as an independent, author-labeled example, while user-level instances aggregate a user's posts into a single TF-IDF document. User-level test sets are small for rare conditions; these F1 values are correspondingly higher-variance than the post-level results.}
 \label{tab:results_classical_full}
-\resizebox{\textwidth}{!}{%
 \begin{tabular}{llcccc}
 \toprule
 \textbf{Condition} & \textbf{Model} & \textbf{F1} & \textbf{Acc.} & \textbf{P} & \textbf{R} \\
@@ -697,6 +698,19 @@ Tables \ref{tab:results_classical_full} and \ref{tab:results_plm_full} show the 
  & LR & 0.824|0.812 & 0.727|0.800 & 0.754|0.765 & 0.909|0.867 \\
  & SVM & 0.804|\textbf{0.909} & 0.711|0.900 & 0.770|0.833 & 0.841|1.000 \\
  & XGB & 0.818|0.788 & 0.717|0.767 & 0.747|0.722 & 0.903|0.867 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{Full classical classifier results on CARMA (Reddit), conditions 7--12 of 12 (continued from Table~\ref{tab:results_classical_full}). Each cell reports \textit{post level $|$ user level}. User-level test sets are small for rare conditions (e.g., $n{=}10$ for eating disorder and schizophrenia, $n{=}16$ for bipolar disorder and suicidal ideation); these F1 values are correspondingly higher-variance than the post-level results.}
+\label{tab:results_classical_full2}
+\begin{tabular}{llcccc}
+\toprule
+\textbf{Condition} & \textbf{Model} & \textbf{F1} & \textbf{Acc.} & \textbf{P} & \textbf{R} \\
 \midrule
 \multirow{4}{*}{BPD}
  & NB & \textbf{0.863}|\textbf{0.720} & 0.778|0.650 & 0.808|0.600 & 0.927|0.900 \\
@@ -734,15 +748,15 @@ Tables \ref{tab:results_classical_full} and \ref{tab:results_plm_full} show the 
  & SVM & 0.745|\textbf{0.727} & 0.628|0.700 & 0.819|0.667 & 0.683|0.800 \\
  & XGB & \textbf{0.789}|0.500 & 0.667|0.400 & 0.795|0.429 & 0.783|0.600 \\
 \bottomrule
-\end{tabular}%
-}
+\end{tabular}
 \end{table*}
 
 \begin{table*}[t]
 \centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
 \caption{Full fine-tuned PLM results on CARMA (Reddit). Each cell reports \textit{post level $|$ user level}: post-level instances classify each post individually (label inherited from its author), while user-level instances concatenate a user's posts into a single (truncated) input sequence. Best F1 per condition in \textbf{bold} for each level. User-level test sets are small for rare conditions (e.g., $n{=}10$ for eating disorder and schizophrenia, $n{=}16$ for bipolar disorder and suicidal ideation); these F1 values are correspondingly higher-variance than the post-level results.}
 \label{tab:results_plm_full}
-\resizebox{\textwidth}{!}{%
 \begin{tabular}{llcccc}
 \toprule
 \textbf{Condition} & \textbf{Model} & \textbf{F1} & \textbf{Acc.} & \textbf{P} & \textbf{R} \\
@@ -795,8 +809,7 @@ Tables \ref{tab:results_classical_full} and \ref{tab:results_plm_full} show the 
  & AraBERT & \textbf{0.748}|\textbf{0.727} & 0.614|0.700 & 0.776|0.667 & 0.722|0.800 \\
  & CAMeLBERT & 0.720|0.667 & 0.585|0.500 & 0.775|0.500 & 0.672|1.000 \\
 \bottomrule
-\end{tabular}%
-}
+\end{tabular}
 \end{table*}
 
 \section{Condition Keyword Lists}
